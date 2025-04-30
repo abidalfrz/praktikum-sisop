@@ -1813,7 +1813,7 @@ int main() {
 
 Terminal :
 
-![Screenshot from 2025-04-30 15-37-13](https://github.com/user-attachments/assets/0a201f07-b860-49ae-a37e-8570f16ee165)
+![Screenshot from 2025-04-30 15-37-13](https://drive.google.com/uc?id=1zS02JiBBzCUfoo9h7GE8W0kWAw79P4Qr)
 
 Isi folder Heroines :
 
