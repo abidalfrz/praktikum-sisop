@@ -72,8 +72,26 @@ praktikan2:praktikan2
 **Answer:**
 
 - **Code:**
+```
+cd home
+mkdir -p {root,Budiman,guest,praktikan1,praktikan2}
+```
+```
+cd .. && cd etc
+```
+```
+openssl passwd -1 Iniroot
+openssl passwd -1 PassBudi
+openssl passwd -1 guest
+openssl passwd -1 praktikan1
+openssl passwd -1 praktikan2
+```
+```
+touch passwd
+root:<hash>:1000:1000:root:/home/abid:/bin/sh
+prak:<hash>:1000:1000:prak:/home/prak:/bin/sh
 
-  `put your answer here`
+
 
 - **Explanation:**
 
