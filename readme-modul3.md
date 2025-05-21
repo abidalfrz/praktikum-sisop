@@ -88,10 +88,30 @@ openssl passwd -1 praktikan2
 ```
 ```
 touch passwd
-root:<hash>:1000:1000:root:/home/abid:/bin/sh
-prak:<hash>:1000:1000:prak:/home/prak:/bin/sh
-
-
+```
+```
+root:<<hashkeypassroot>>:0:0:root:/root:/bin/sh
+Budiman:<<hashkeypassBudiman>>:1001:100:Budiman:/home/Budiman:/bin/sh
+guest:<<hashkeypassguest>>:1002:100:guest:/home/guest:/bin/sh
+praktikan1:<<hashkeypasspraktikan1>>:1003:100:praktikan1:/home/praktikan1:/bin/sh
+praktikan2:<<hashkeypasspraktikan2>>:1004:100:praktikan2:/home/praktikan2:/bin/sh
+```
+```
+touch group
+```
+```
+root:x:0:
+bin:x:1:root
+sys:x:2:root
+tty:x:5:root,Budiman,guest,praktikan1,praktikan2
+disk:x:6:root
+wheel:x:10:root,Budiman,guest,praktikan1,praktikan2
+users:x:100:Budiman,guest,praktikan1,praktikan2
+```
+```
+cd ..
+find . | cpio -oHnewc | gzip > ../myramdisk.gz
+```
 
 - **Explanation:**
 
