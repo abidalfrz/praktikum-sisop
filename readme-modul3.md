@@ -113,12 +113,101 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  ```
+  nano etc/group
+  ```
+  ```
+  root:x:0:
+  bin:x:1:root
+  sys:x:2:root
+  tty:x:5:root
+  disk:x:6:root
+  wheel:x:10:root
+  Budiman:x:<<GID>>:
+  guest:x:<<GID>>:
+  praktikan1:x:<<GID>>:
+  praktikan2:x:<<GID>>:
+  users:x:100:Budiman,guest,praktikan1,praktikan2
+  ```
+  ```
+  cd myramdisk/home
+  ```
+  ```
+  chown <<UIDBudiman>>:<<GIDBudiman>> Budiman
+  chown <<UIDguest>>:<<GIDguest>> guest
+  chown <<UIDpraktikan1>>:<<GIDpraktikan1>> praktikan1
+  chown <<UIDpraktikan2>>:<<GIDpraktikan2>> praktikan2
+  ```
+  ```
+  chmod 700 Budiman
+  chmod 700 guest
+  chmod 700 praktikan1
+  chmod 700 praktikan2
+  ```
+  
 
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  
+  ```
+  nano myramdisk/etc/group
+  ```
+  Jika belum dibuat, membuat folder `group` di dalam `myramdisk/etc/`. Setelah itu isi dengan:
+  ```
+  root:x:0:
+  bin:x:1:root
+  sys:x:2:root
+  tty:x:5:root
+  disk:x:6:root
+  wheel:x:10:root
+  Budiman:x:<<GID>>:
+  guest:x:<<GID>>:
+  praktikan1:x:<<GID>>:
+  praktikan2:x:<<GID>>:
+  users:x:100:Budiman,guest,praktikan1,praktikan2
+  ```
+  Jika `group` sudah ada di dalam `myramdisk/etc/`, cukup menambahkan
+  ```
+  Budiman:x:<<GID>>:
+  guest:x:<<GID>>:
+  praktikan1:x:<<GID>>:
+  praktikan2:x:<<GID>>:
+  ```
+  di dalam isi file tersebut.
+  
+  ```
+  cd myramdisk/home
+  ```
+  Berpindah ke `/home` untuk melakukan perubahan akses untuk tiap direktori user.
+  ```
+  chown <<UIDBudiman>>:<<GIDBudiman>> Budiman
+  chown <<UIDguest>>:<<GIDguest>> guest
+  chown <<UIDpraktikan1>>:<<GIDpraktikan1>> praktikan1
+  chown <<UIDpraktikan2>>:<<GIDpraktikan2>> praktikan2
+  ```
+  Mengubah ownership untuk tiap direktori user sesuai dengan UID dan GID yang dimiliki oleh user.
+  
+  <b>catatan: UID bisa dilihat di `passwd`</b>
+  
+  ```
+  chmod 700 Budiman
+  chmod 700 guest
+  chmod 700 praktikan1
+  chmod 700 praktikan2
+  ```
+  Mengubah izin akses untuk tiap direktori user agar hanya owner yang dapat mengakses.
 
+  
+  
+  
+  
 - **Screenshot:**
 
   `put your answer here`
