@@ -283,12 +283,13 @@ praktikan2:praktikan2
   sudo bash
   ```
   Berpindah ke superuser (root) untuk melakukan perubahan.
+  
   ```
   cd myramdisk
   nano etc/motd
   ```
-  Berpindah ke direktori `myramdisk` lalu membuat file `motd` di dalam direktori `etc`
-  `motd`: "Message of The Day", file yang isinya akan ditampilkan secara otomatis di terminal setalah user berhasil login.
+  Berpindah ke direktori `myramdisk` lalu membuat file `motd` di dalam direktori `etc`.
+  <br>`motd`: "Message of The Day", file yang isinya akan ditampilkan secara otomatis di terminal setalah user berhasil login.</br>
   
   ```
   '##:::::'##:'########:'##::::::::'######:::'#######::'##::::'##:'########: 
@@ -308,17 +309,23 @@ praktikan2:praktikan2
   . #######::. ######:::::::: #########:. ######::
   :.......::::......:::::::::.........:::......:::
   ```
-  Mengisi file `motd` dengan teks grafiti tersebut.
+  Mengisi file `motd` dengan teks **ASCII Art** tersebut.
 
   ```
   find . | cpio -oHnewc | gzip > ../myramdisk.gz
   ```
-  menggunakan utilitas cpio lalu mengompresnya dengan gzip untuk membuat/memperbarui `myramdisk.gz`.
+  Menggunakan utilitas cpio lalu mengompresnya dengan gzip untuk membuat/memperbarui `myramdisk.gz`.
   
 
 - **Screenshot:**
 
-  `put your answer here`
+  Tampilan sebelum menambahkan banner
+  
+  ![before](https://drive.google.com/uc?id=1d2G8F-MhL7YpaVtFoYOKrpkLecg-MMne)
+
+  Tampilan setelah menambahkan banner
+
+  ![after](https://drive.google.com/uc?id=13e2O4v2F9WDlX18OrCA56z21YGiRxGIR)
 
 ### Soal 7
 
@@ -330,15 +337,59 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  ```
+  cd myramdisk
+  nano etc/profile
+  ```
+  ```
+  #!/bin/bash
 
+  echo "Heloo $USER"
+  ```
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  
+  ```
+  cd myramdisk
+  nano etc/motd
+  ```
+  Berpindah ke direktori `myramdisk` lalu membuat file `profile` di dalam direktori `etc`.
+  <br>`profile`: file yang digunakan untuk mengatur konfigurasi awal terminal untuk semua user ketika login dengan menjalankan isi dari file tersebut.</br>
+
+  ```
+  #!/bin/bash
+
+  echo "Heloo $USER"
+  ```
+  Mengisi file `profile` dengan skrip tersebut untuk memberikan greeting dan menggunakan `$USER` untuk mengakses nama user yang login.
+
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  Menggunakan utilitas cpio lalu mengompresnya dengan gzip untuk membuat/memperbarui `myramdisk.gz`.
 
 - **Screenshot:**
 
-  `put your answer here`
+  Tampilan sebelum menambahkan greeting message
+
+  ![before](https://drive.google.com/uc?id=13e2O4v2F9WDlX18OrCA56z21YGiRxGIR)
+
+  Tampilan setelah menambahkan greeting message
+
+  ![after](https://drive.google.com/uc?id=1h45UubSILXQsNrMwpRG3tmCAmO4vUH_5)
+
+  
 
 ### Soal 8
 
