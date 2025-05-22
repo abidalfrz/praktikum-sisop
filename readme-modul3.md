@@ -194,7 +194,7 @@ praktikan2:praktikan2
   ```
   Mengubah ownership untuk tiap direktori user sesuai dengan UID dan GID yang dimiliki oleh user.
   
-  <b>catatan: UID bisa dilihat di `passwd`</b>
+  <b>catatan: UID dapat dilihat di `passwd`</b>
   
   ```
   chmod 700 Budiman
@@ -205,11 +205,32 @@ praktikan2:praktikan2
   Mengubah izin akses untuk tiap direktori user agar hanya owner yang dapat mengakses.
   
 - **Screenshot:**
+  
+  Tampilan `passwd` untuk melihat UID tiap user
+  ![UID](https://drive.google.com/uc?id=1KokEZxyb5dq6s87EAouNEFKfJuxniXSZ)
 
   Tampilan izin akses tiap direktori user sebelum diubah
 
-  [!access](https://drive.google.com/uc?id=1lXd_pWEPL4KFKQPBOHlfJrHyNLGH-U-M)
+  ![access](https://drive.google.com/uc?id=1lXd_pWEPL4KFKQPBOHlfJrHyNLGH-U-M)
 
+  
+  Tampilan izin akses tiap direktori user setelah diubah:
+
+  - VM
+
+    ![noaccess](https://drive.google.com/uc?id=1zedGQJ8uqGyWwqG_RIHGNhNkiKuUPzTI)
+
+  - QEMU
+ 
+    ![noaccess](https://drive.google.com/uc?id=1roCqLRl_I87B9MzIVjbS-H0ylNlhow3U)
+
+  Implementasi login menggunakan user `Budiman`
+  
+  ![implement](https://drive.google.com/uc?id=1zCUHogCb20hDOA5_lBiFKIDES4t_6-Li)
+    
+
+
+  
 ### Soal 6
 
 > Dosen Budiman menginginkan sistem operasi yang **stylish**. Budiman memiliki ide untuk membuat sistem operasinya menjadi stylish. Ia meminta kamu untuk menambahkan tampilan sebuah banner yang ditampilkan setelah suatu user login ke dalam sistem operasi Budiman. Banner yang diinginkan Budiman adalah tulisan `"Welcome to OS'25"` dalam bentuk **ASCII Art**. Buatkanlah banner tersebut supaya Budiman senang! (Hint: gunakan text to ASCII Art Generator)
