@@ -325,6 +325,7 @@ praktikan2:praktikan2
 
   Tampilan setelah menambahkan banner
 
+
   ![after](https://drive.google.com/uc?id=13e2O4v2F9WDlX18OrCA56z21YGiRxGIR)
 
 ### Soal 7
