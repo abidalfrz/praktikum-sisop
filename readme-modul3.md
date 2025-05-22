@@ -147,7 +147,9 @@ praktikan2:praktikan2
   chmod 700 praktikan1
   chmod 700 praktikan2
   ```
-  
+  ```
+  cd .. && find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
 
 - **Explanation:**
 
@@ -159,7 +161,7 @@ praktikan2:praktikan2
   ```
   nano myramdisk/etc/group
   ```
-  Jika belum dibuat, membuat folder `group` di dalam `myramdisk/etc/`. Setelah itu isi dengan:
+  Jika belum dibuat, membuat folder `group` di dalam `myramdisk/etc/`. Setelah itu isi file tersebut dengan:
   ```
   root:x:0:
   bin:x:1:root
@@ -180,7 +182,7 @@ praktikan2:praktikan2
   praktikan1:x:<<GID>>:
   praktikan2:x:<<GID>>:
   ```
-  di dalam isi file tersebut.
+  di dalam file tersebut.
   
   ```
   cd myramdisk/home
@@ -203,6 +205,11 @@ praktikan2:praktikan2
   chmod 700 praktikan2
   ```
   Mengubah izin akses untuk tiap direktori user agar hanya owner yang dapat mengakses.
+
+  ```
+  cd .. && find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  Berpindah ke direktori `myramdisk` menggunakan utilitas cpio lalu mengompresnya dengan gzip untuk membuat/memperbarui `myramdisk.gz`.
   
 - **Screenshot:**
   
@@ -241,11 +248,73 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
-
+  ```
+  sudo bash
+  ```
+  ```
+  cd myramdisk
+  nano etc/motd
+  ```
+  ```
+  '##:::::'##:'########:'##::::::::'######:::'#######::'##::::'##:'########: 
+   ##:'##: ##: ##.....:: ##:::::::'##... ##:'##.... ##: ###::'###: ##.....::
+   ##: ##: ##: ##::::::: ##::::::: ##:::..:: ##:::: ##: ####'####: ##:::::::
+   ##: ##: ##: ######::: ##::::::: ##::::::: ##:::: ##: ## ### ##: ######:::
+   ##: ##: ##: ##...:::: ##::::::: ##::::::: ##:::: ##: ##. #: ##: ##...::::
+   ##: ##: ##: ##::::::: ##::::::: ##::: ##: ##:::: ##: ##:.:: ##: ##:::::::
+  . ###. ###:: ########: ########:. ######::. #######:: ##:::: ##: ########:
+  :...::...:::........::........:::......::::.......:::..:::::..::........::
+  :'#######:::'######::'####::'#######::'########:
+  '##.... ##:'##... ##: ####:'##.... ##: ##.....::
+   ##:::: ##: ##:::..::. ##::..::::: ##: ##:::::::
+   ##:::: ##:. ######::'##::::'#######:: #######::
+   ##:::: ##::..... ##:..::::'##::::::::...... ##:
+   ##:::: ##:'##::: ##::::::: ##::::::::'##::: ##:
+  . #######::. ######:::::::: #########:. ######::
+  :.......::::......:::::::::.........:::......:::
+  ```
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  ```
+  cd myramdisk
+  nano etc/motd
+  ```
+  Berpindah ke direktori `myramdisk` lalu membuat file `motd` di dalam direktori `etc`
+  `motd`: "Message of The Day", file yang isinya akan ditampilkan secara otomatis di terminal setalah user berhasil login.
+  
+  ```
+  '##:::::'##:'########:'##::::::::'######:::'#######::'##::::'##:'########: 
+   ##:'##: ##: ##.....:: ##:::::::'##... ##:'##.... ##: ###::'###: ##.....::
+   ##: ##: ##: ##::::::: ##::::::: ##:::..:: ##:::: ##: ####'####: ##:::::::
+   ##: ##: ##: ######::: ##::::::: ##::::::: ##:::: ##: ## ### ##: ######:::
+   ##: ##: ##: ##...:::: ##::::::: ##::::::: ##:::: ##: ##. #: ##: ##...::::
+   ##: ##: ##: ##::::::: ##::::::: ##::: ##: ##:::: ##: ##:.:: ##: ##:::::::
+  . ###. ###:: ########: ########:. ######::. #######:: ##:::: ##: ########:
+  :...::...:::........::........:::......::::.......:::..:::::..::........::
+  :'#######:::'######::'####::'#######::'########:
+  '##.... ##:'##... ##: ####:'##.... ##: ##.....::
+   ##:::: ##: ##:::..::. ##::..::::: ##: ##:::::::
+   ##:::: ##:. ######::'##::::'#######:: #######::
+   ##:::: ##::..... ##:..::::'##::::::::...... ##:
+   ##:::: ##:'##::: ##::::::: ##::::::::'##::: ##:
+  . #######::. ######:::::::: #########:. ######::
+  :.......::::......:::::::::.........:::......:::
+  ```
+  Mengisi file `motd` dengan teks grafiti tersebut.
+
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  menggunakan utilitas cpio lalu mengompresnya dengan gzip untuk membuat/memperbarui `myramdisk.gz`.
+  
 
 - **Screenshot:**
 
