@@ -203,14 +203,12 @@ praktikan2:praktikan2
   chmod 700 praktikan2
   ```
   Mengubah izin akses untuk tiap direktori user agar hanya owner yang dapat mengakses.
-
-  
-  
-  
   
 - **Screenshot:**
 
-  `put your answer here`
+  Tampilan izin akses tiap direktori user sebelum diubah
+
+  [!access](https://drive.google.com/uc?id=1lXd_pWEPL4KFKQPBOHlfJrHyNLGH-U-M)
 
 ### Soal 6
 
