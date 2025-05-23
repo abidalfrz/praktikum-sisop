@@ -117,7 +117,8 @@ praktikan2:praktikan2
   sudo bash
   ```
   ```
-  nano etc/group
+  mkdir -p myramdisk/etc
+  nano myramdisk/etc/group
   ```
   ```
   root:x:0:
@@ -159,9 +160,11 @@ praktikan2:praktikan2
   Berpindah ke superuser (root) untuk melakukan perubahan.
   
   ```
+  mkdir -p myramdisk/etc
   nano myramdisk/etc/group
   ```
-  Jika belum dibuat, membuat folder `group` di dalam `myramdisk/etc/`. Setelah itu isi file tersebut dengan:
+  Membuat direktori `etc` di dalam direktori `myramdisk`.
+  Setelah itu, jika file `group` belum dibuat, membuat file `group` di dalam `myramdisk/etc/` dan mengisi file tersebut dengan:
   ```
   root:x:0:
   bin:x:1:root
