@@ -325,6 +325,7 @@ praktikan2:praktikan2
   openssl passwd -1 praktikan1
   openssl passwd -1 praktikan2
   ```
+  Berpindah ke direktori `etc`.
   Membuat password user yang dienkripsi.
   ```
   nano passwd
