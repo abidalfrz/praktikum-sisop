@@ -23,7 +23,72 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  ```
+  ```
+  sudo apt -y update
+  sudo apt -y install qemu-system build-essential bison flex libelf-dev libssl-dev bc grub-common grub-pc libncurses-dev libssl-dev mtools grub-pc-bin  xorriso tmux
+  ```
+  ```
+  mkdir -p osboot
+  cd osboot
+  ```
+  ```
+  wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.1.tar.xz
+  tar -xvf linux-6.1.1.tar.xz
+  cd linux-6.1.1
+  ```
+  ```
+  64-Bit Kernel
+  General Setup > Configure standard kernel features > Enable support for printk
+  General Setup > Configure standard kernel features > Enable futex support
+  General Setup > Initial RAM filesystem and RAM disk (initramfs/initrd) support
+  General Setup > Control Group Support
+  Enable the block layer > Legacy autoloading support
+  Enable the block layer > Partition type > Advanced Partition Selection
+  Device Drivers > Character devices > Enable TTY
+  Device Drivers > Character devices > Virtio console
+  Device Drivers > Character devices > /dev/mem virtual device support
+  Device Drivers > Network device support > Virtio Network Driver
+  Device Drivers > Serial Ata / Paralel ATA
+  Device Drivers > Block Devices > Virtio block driver
+  Device Drivers > Block Devices > loopback device support
+  Device Drivers > Block Devices > RAM block device support
+  Device Drivers > Virtio drivers
+  Device Drivers > Virtualization Drivers
+  Device Drivers > Generic  Driver Options > Maintain a devtmpfs at filesystems
+  Device Drivers > Generic Driver Options > Automount devtmpfs at /dev
+  Executable file formats > Kernel Support for ELF binaries
+  Executable file formats > Kernel Support scripts starting with #!
+  File Systems > FUSE support
+  File Systems > The extended 3 filesystem
+  File Systems > The extended 4 filesystem
+  File Systems > Second extended fs support
+  File Systems > Virtio Filesystem
+  File Systems > Kernel automounter support
+  File Systems > Pseudo File Systems > /proc file system support
+  File Systems > Pseudo File Systems > sysctl support
+  File Systems > Pseudo File Systems > sysfs file system support
+  Networking Support > Networking options > Unix domain sockets
+  Networking Support > Networking options > TCP/IP Networking
+  ```
+  ```
+  make tinyconfig
+  make menuconfig
+  ```
+  ```
+  make -j$(nproc)
+  ```
+  ```
+  cp arch/x86/boot/bzImage ..
+  ```
+  ```
+  sudo apt install -y busybox-static
+  ```
+  ```
+  whereis busybox
+  ```
 
 - **Explanation:**
 
@@ -35,7 +100,7 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 ### Soal 2
 
-> Setelah seluruh prasyarat siap, Budiman siap untuk membuat sistem operasinya. Dosen meminta untuk sistem operasi Budiman harus memiliki directory **bin, dev, proc, sys, tmp,** dan **sisop**. Lagi-lagi Budiman meminta bantuanmu. Bantulah Ia dalam membuat directory tersebut!
+> Setelah seluruh prasyarat siap, Budiman siap untuk membuat sistem operasinya. Dosen meminta untuk sistem operasi Budiman harus memiliki directory **bin, dev, proc, sys, tmp, home** dan **sisop**. Lagi-lagi Budiman meminta bantuanmu. Bantulah Ia dalam membuat directory tersebut!
 
 > _Once all prerequisites are ready, Budiman is ready to create his OS. The lecturer asks that the OS should contain the directories **bin, dev, proc, sys, tmp,** and **sisop**. Help Budiman create these directories!_
 
@@ -43,7 +108,24 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  cd osboot
+  ```
+  ```
+  mkdir -p myramdisk/{bin,dev,proc,sys,etc,tmp,home}
+  ```
+  ```
+  cp -a /dev/null myramdisk/dev
+  cp -a /dev/tty* myramdisk/dev
+  cp -a /dev/zero myramdisk/dev
+  cp -a /dev/console myramdisk/dev
+  ```
+  ```
+  cp /usr/bin/busybox myramdisk/bin
+  cd myramdisk/bin
+  ./busybox --install .
+  ```
 
 - **Explanation:**
 
@@ -73,7 +155,54 @@ praktikan2:praktikan2
 
 - **Code:**
   
-  `put your answer here`
+  ```
+  sudo bash
+  cd myramdisk
+  ```
+  ```
+  mkdir root
+  mkdir -p home/{Budiman,guest,praktikan1,praktikan2}
+  ```
+  ```
+  cd etc
+  openssl passwd -1 Iniroot
+  openssl passwd -1 PassBudi
+  openssl passwd -1 guest
+  openssl passwd -1 praktikan1
+  openssl passwd -1 praktikan2
+  ```
+  ```
+  root:<<hasilgeneratorrootpassword>>:0:0:root:/root:/bin/sh
+  user1:<<hasilgeneratorrootpassword>>:1001:100:user1:/home/user1:/bin/sh
+  ```
+  ```
+  root:x:0:
+  bin:x:1:root
+  sys:x:2:root
+  tty:x:5:root,user1
+  disk:x:6:root
+  wheel:x:10:root,user1
+  users:x:100:user1
+  ```
+  ```
+  cd myramdisk
+  nano init
+  chmod +x init
+  ```
+  ```
+  #!/bin/sh
+  /bin/mount -t proc none /proc
+  /bin/mount -t sysfs none /sys
+
+  while true
+  do
+      /bin/getty -L tty1 115200 vt100
+      sleep 1
+  done
+  ```
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
 
 - **Explanation:**
 
