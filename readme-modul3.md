@@ -22,10 +22,7 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 **Answer:**
 
 - **Code:**
-
-  ```
-  sudo bash
-  ```
+  
   ```
   sudo apt -y update
   sudo apt -y install qemu-system build-essential bison flex libelf-dev libssl-dev bc grub-common grub-pc libncurses-dev libssl-dev mtools grub-pc-bin  xorriso tmux
@@ -40,6 +37,10 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
   cd linux-6.1.1
   ```
   ```
+  make tinyconfig
+  ```
+  ```
+  make menuconfig
   64-Bit Kernel
   General Setup > Configure standard kernel features > Enable support for printk
   General Setup > Configure standard kernel features > Enable futex support
@@ -74,10 +75,6 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
   Networking Support > Networking options > TCP/IP Networking
   ```
   ```
-  make tinyconfig
-  make menuconfig
-  ```
-  ```
   make -j$(nproc)
   ```
   ```
@@ -92,7 +89,81 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo apt -y update
+  sudo apt -y install qemu-system build-essential bison flex libelf-dev libssl-dev bc grub-common grub-pc libncurses-dev libssl-dev mtools grub-pc-bin  xorriso tmux
+  ```
+  Memastikan sistem telah diperbarui.
+  Menginstal tools qemu, build-essential, bison, flex, libelf-dev, libssl-dev, bc, grub-common, grub-pc, grub-pc-bin, libncurses-dev, mtools, xorriso, tmux.
+  ```
+  mkdir -p osboot
+  cd osboot
+  ```
+  Membuat direktori osboot, lalu berpindah ke dalam direktori osboot.
+  ```
+  wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.1.tar.xz
+  tar -xvf linux-6.1.1.tar.xz
+  cd linux-6.1.1
+  ```
+  Menginstall kode sumber kernel Linux versi 6.1.1 lalu diekstrak ke dalam direktori `linux-6.1.1`.
+  ```
+  make tinyconfig
+  ```
+  Membuat konfigurasi minimal.
+  ```
+  make menuconfig
+  64-Bit Kernel
+  General Setup > Configure standard kernel features > Enable support for printk
+  General Setup > Configure standard kernel features > Enable futex support
+  General Setup > Initial RAM filesystem and RAM disk (initramfs/initrd) support
+  General Setup > Control Group Support
+  Enable the block layer > Legacy autoloading support
+  Enable the block layer > Partition type > Advanced Partition Selection
+  Device Drivers > Character devices > Enable TTY
+  Device Drivers > Character devices > Virtio console
+  Device Drivers > Character devices > /dev/mem virtual device support
+  Device Drivers > Network device support > Virtio Network Driver
+  Device Drivers > Serial Ata / Paralel ATA
+  Device Drivers > Block Devices > Virtio block driver
+  Device Drivers > Block Devices > loopback device support
+  Device Drivers > Block Devices > RAM block device support
+  Device Drivers > Virtio drivers
+  Device Drivers > Virtualization Drivers
+  Device Drivers > Generic  Driver Options > Maintain a devtmpfs at filesystems
+  Device Drivers > Generic Driver Options > Automount devtmpfs at /dev
+  Executable file formats > Kernel Support for ELF binaries
+  Executable file formats > Kernel Support scripts starting with #!
+  File Systems > FUSE support
+  File Systems > The extended 3 filesystem
+  File Systems > The extended 4 filesystem
+  File Systems > Second extended fs support
+  File Systems > Virtio Filesystem
+  File Systems > Kernel automounter support
+  File Systems > Pseudo File Systems > /proc file system support
+  File Systems > Pseudo File Systems > sysctl support
+  File Systems > Pseudo File Systems > sysfs file system support
+  Networking Support > Networking options > Unix domain sockets
+  Networking Support > Networking options > TCP/IP Networking
+  ```
+  Menyesuaikan konfigurasi lebih lanjut untuk mengaktifkan fitur-fitur, seperti dukungan untuk virtualisasi, file systems, driver perangkat, serta jaringan.
+  Simpan hasil konfigurasi pada `.config`.
+  ```
+  make -j$(nproc)
+  ```
+  Mengkompilasi kernel menggunakan seluruh inti CPU yang tersedia pada sistem.
+  Menghasilkan file `bzImage` di dalam direktori `arch/x86/boot/`
+  ```
+  cp arch/x86/boot/bzImage ..
+  ```
+  Menyalin file `bzImage` ke dalam direktori `osboot`
+  ```
+  sudo apt install -y busybox-static
+  ```
+  Menginstall BusyBox.
+  ```
+  whereis busybox
+  ```
+  Mengecek apakah BusyBox sudah terinstall.
 
 - **Screenshot:**
 
@@ -222,7 +293,19 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  cd myramdisk
+  ```
+  ```
+  chown 0:0 root
+  ```
+  ```
+  chmod 700 root
+  ```
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
 
 - **Explanation:**
 
