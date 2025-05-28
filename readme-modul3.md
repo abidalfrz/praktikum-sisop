@@ -169,7 +169,7 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
   Isi direktori `osboot` :
   
-  ![DirektoriOsboot](https://drive.google.com/uc?id=1WK9vV-n1175aemWCv1_8KGsenbWfRuc5)
+  ![DirektoriOsboot](https://drive.google.com/uc?id=1Lq7lKyt3VRi0zAsnrhxKtxSVoFuMC6NF)
   
   BusyBox:
   
