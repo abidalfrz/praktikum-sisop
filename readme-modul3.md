@@ -200,7 +200,30 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  cd osboot
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  Berpindah ke dalam direktori `osboot`.
+  ```
+  mkdir -p myramdisk/{bin,dev,proc,sys,etc,tmp,home}
+  ```
+  Membuat direktori `myramdisk` dengan sub-direktori `bin`, `dev`, `proc`, `sys`, `etc`, `tmp`, `home`.
+  ```
+  cp -a /dev/null myramdisk/dev
+  cp -a /dev/tty* myramdisk/dev
+  cp -a /dev/zero myramdisk/dev
+  cp -a /dev/console myramdisk/dev
+  ```
+  Menyalin file-file perangkat `null`, `tty`, `zero`, dan `console` dari sistem host ke dalam direktori dev di `myramdisk`.
+  ```
+  cp /usr/bin/busybox myramdisk/bin
+  cd myramdisk/bin
+  ./busybox --install .
+  ```
+  Menyalin file BusyBox ke direktori `bin`.
+  Melakukan instalasi utilitas BusyBox.
 
 - **Screenshot:**
 
@@ -243,17 +266,22 @@ praktikan2:praktikan2
   openssl passwd -1 praktikan2
   ```
   ```
-  root:<<hasilgeneratorrootpassword>>:0:0:root:/root:/bin/sh
-  user1:<<hasilgeneratorrootpassword>>:1001:100:user1:/home/user1:/bin/sh
+  nano passwd
+  root:$1$w9Ddhtm4$CWtN45A8nlnST4b4XriyK1:0:0:root:/root:/bin/sh
+  Budiman:$1$rKO9j7kk$wBuu8ucGRyzEJndT.z7K2/:1001:100:Budiman:/home/Budiman:/bin/sh
+  guest:$1$7dqC7kbY$HaIBVXoBdKEkgbodoAhQs/:1002:100:guest:/home/guest:/bin/sh
+  praktikan1:$1$vSfMyddp$J3Rc25vqTYcYeZqvuSFYz0:1003:100:praktikan1:/home/praktikan1:/bin/sh
+  praktikan2:$1$gDd1664F$Gwn/n.dMsXRQJqpnG8JIH0:1004:100:praktikan2:/home/praktikan2:/bin/sh
   ```
   ```
+  nano group
   root:x:0:
   bin:x:1:root
   sys:x:2:root
-  tty:x:5:root,user1
+  tty:x:5:root,Budiman,guest,praktikan1,praktikan2
   disk:x:6:root
-  wheel:x:10:root,user1
-  users:x:100:user1
+  wheel:x:10:root,Budiman,guest,praktikan1,praktikan2
+  users:x:100:Budiman,guest,praktikan1,praktikan2
   ```
   ```
   cd myramdisk
@@ -277,7 +305,70 @@ praktikan2:praktikan2
 
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  cd myramdisk
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  Berpindah ke dalam direktori `myramdisk`.
+  ```
+  mkdir root
+  mkdir -p home/{Budiman,guest,praktikan1,praktikan2}
+  ```
+  Membuat direktori user `root`.
+  Membuat sub-direktori user `Budiman`, `guest`, `praktikan1`, dan `praktikan2` ke dalam direktori `home`.
+  ```
+  cd etc
+  openssl passwd -1 Iniroot
+  openssl passwd -1 PassBudi
+  openssl passwd -1 guest
+  openssl passwd -1 praktikan1
+  openssl passwd -1 praktikan2
+  ```
+  Membuat password user yang dienkripsi.
+  ```
+  nano passwd
+  root:$1$w9Ddhtm4$CWtN45A8nlnST4b4XriyK1:0:0:root:/root:/bin/sh
+  Budiman:$1$rKO9j7kk$wBuu8ucGRyzEJndT.z7K2/:1001:100:Budiman:/home/Budiman:/bin/sh
+  guest:$1$7dqC7kbY$HaIBVXoBdKEkgbodoAhQs/:1002:100:guest:/home/guest:/bin/sh
+  praktikan1:$1$vSfMyddp$J3Rc25vqTYcYeZqvuSFYz0:1003:100:praktikan1:/home/praktikan1:/bin/sh
+  praktikan2:$1$gDd1664F$Gwn/n.dMsXRQJqpnG8JIH0:1004:100:praktikan2:/home/praktikan2:/bin/sh
+  ```
+  Membuat file `passwd` di dalam direktori `etc` untuk menyimpan database semua user.
+  ```
+  nano group
+  root:x:0:
+  bin:x:1:root
+  sys:x:2:root
+  tty:x:5:root,Budiman,guest,praktikan1,praktikan2
+  disk:x:6:root
+  wheel:x:10:root,Budiman,guest,praktikan1,praktikan2
+  users:x:100:Budiman,guest,praktikan1,praktikan2
+  ```
+  Membuat file `group` di dalam direktori `etc` yang berisi pengaturan grup untuk user.
+  ```
+  cd myramdisk
+  nano init
+  chmod +x init
+  ```
+  Membuat file `init` yang nantinya akan dipanggil oleh bootloader saat sistem booting.
+  Memberikan izin eksekusi pada file `init`.
+  ```
+  #!/bin/sh
+  /bin/mount -t proc none /proc
+  /bin/mount -t sysfs none /sys
+
+  while true
+  do
+      /bin/getty -L tty1 115200 vt100
+      sleep 1
+  done
+  ```
+  Melakukan mounting untuk proc dan sysfs, yang memungkinkan komunikasi antara user space dan kernel. Kemudian, perintah getty akan menunggu input login dari pengguna melalui konsol.
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  Generate ramdisk baru yang sudah diupdate.
 
 - **Screenshot:**
 
@@ -309,7 +400,24 @@ praktikan2:praktikan2
 
 - **Explanation:**
 
-  `put your answer here`
+  ```
+  sudo bash
+  cd myramdisk
+  ```
+  Berpindah ke superuser (root) untuk melakukan perubahan.
+  Berpindah ke dalam direktori `myramdisk`.
+  ```
+  chown 0:0 root
+  ```
+  Mengubah folder bernama root agar hanya dimiliki user ID 0 (root) dan group ID 0 (root)
+  ```
+  chmod 700 root
+  ```
+  Membuat agar izin akses hanya untuk root, sehingga user lain tidak bisa mengakses.
+  ```
+  find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
+  Membuat file `initramfs` dan generate ramdisk baru yang sudah diupdate.
 
 - **Screenshot:**
 
@@ -617,39 +725,15 @@ praktikan2:praktikan2
 
 - **Code:**
 
-Dengan menggunakan perintah `make menuconfig` kita mengubah beberapa settingan ui input terminal agar sama dengan terminal input linux utama kita:
-```
--> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support
-```
-```
--> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Support 8250_core.* kernel options (DEPRECATED)
-```
-```
--> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Console on 8250/16550 and compatible serial port 
-```
-
-setelah itu, kita menjalankan qemu dengan pengaturan:
-```qemu-system-x86_64 -smp 2 -m 256 -display curses -vga std -kernel bzImage -initrd myramdisk.gz -nographic -append "console=ttyS0"```
+  `put your answer here`
 
 - **Explanation:**
 
-*config explanation:*
-
-Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support` adalah: 
-Mengaktifkan dukungan untuk UART serial driver 8250/16550 (seri chipset yang umum dipakai di sistem x86 dan embedded). sehingga, Kernel mampu mengakses dan menggunakan port serial yang menggunakan chip ini (misalnya /dev/ttyS0, /dev/ttyS1, dll).
-
-Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Support 8250_core.* kernel options (DEPRECATED)` adalah:
-Kernel bisa pakai 8250_core.nr_uarts=* untuk membuat ttyS0 dan seterusnya.
-
-Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Console on 8250/16550 and compatible serial port` adalah:
-
-*qemu setting explanation:*
-
-Dengan settingan -nographic, semuanya dipindah ke serial console (/dev/ttyS0) secara langsung. sedangkan, console=ttyS0 memberi tahu kernel untuk menggunakan ttyS0 (port serial pertama) sebagai console utama.
+  `put your answer here`
 
 - **Screenshot:**
 
-![after](https://drive.google.com/uc?id=1E5FAwG1OWip4shd1FY4hdu-QfrFmQyyO)
+  `put your answer here`
 
 ### Soal 9
 
@@ -661,86 +745,15 @@ Dengan settingan -nographic, semuanya dipindah ke serial console (/dev/ttyS0) se
 
 - **Code:**
 
-```
-  cp /bin/nano myramdisk/bin/
-
-  mkdir -p myramdisk/{lib,lib64}
-
-  mkdir -p myramdisk/lib/x86_64-linux-gnu
-cp /lib/x86_64-linux-gnu/libncursesw.so.6 myramdisk/lib/x86_64-linux-gnu/
-
-cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
-
-cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
-
-cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
-
-mkdir -p myramdisk/lib/terminfo/v
-cp /lib/terminfo/v/vt100 myramdisk/lib/terminfo/v/
-
-chmod +x myramdisk/bin/nano
-
-cd myramdisk 
-find . | cpio -oHnewc | gzip > ../myramdisk.gz
-```
+  `put your answer here`
 
 - **Explanation:**
 
-**Copy nano dari linux ke mini linux**:
+  `put your answer here`
 
-```
-cp /bin/nano myramdisk/bin/
-```
-
-**Membuat folder lib dan lib64 yang nanti akan dimasukki oleh dpendensi dari nano**:
-
-```
-mkdir -p myramdisk/{lib,lib64}
-```
-**Mengkopi dependensi dari nano ke dalam kedua folder tadi**:
-```
-mkdir -p myramdisk/lib/x86_64-linux-gnu
-cp /lib/x86_64-linux-gnu/libncursesw.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
-```
-Note: dependensi ini dapat dicari dengan syntax`ldd /bin/nano`
-
-**copy vt100 ke dalam myramdisk karena nano butuh ini untuk bekerja**:
-```
-mkdir -p myramdisk/lib/terminfo/v
-cp /lib/terminfo/v/vt100 myramdisk/lib/terminfo/v/
-```
-Note: mencari vt100 bisa menggunakan `find /lib/terminfo -name "vt100"`
-
-**Mengubah izin nano agar bisa mengedit file**:
-```
-chmod +x myramdisk/bin/nano
-```
-
-**Rebuild iniramfs**:
-```
-cd myramdisk 
-find . | cpio -oHnewc | gzip > ../myramdisk.gz
-```
-
-**Jalankan qemu dengan settingan nomor 8 agar menampilkan tampilan terminal**:
-```
-qemu-system-x86_64 \
--smp 2 \
--m 256 \
--nographic \
--kernel bzImage \
--initrd myramdisk.gz \
--nographic \
--append "console=ttyS0"
-```
 - **Screenshot:**
 
-![after](https://drive.google.com/uc?id=1O9aVx8s66tKJBSjWje3eoNk47H7uq8So)
-![after](https://drive.google.com/uc?id=1O9aVx8s66tKJBSjWje3eoNk47H7uq8So)
-![after](https://drive.google.com/uc?id=19CAAg3DDb9U2NG7WFh4qWrhm_8MDhvzo)
+  `put your answer here`
 
 ### Soal 10
 
@@ -751,71 +764,17 @@ qemu-system-x86_64 \
 **Answer:**
 
 - **Code:**
-   ```bash
-   cd osboot
-   ```
-   
-   ```bash
-   mkdir -p mylinuxiso/boot/grub
-   ```
 
-   ```bash
-   cp bzImage mylinuxiso/boot
-   cp myramdisk.gz mylinuxiso/boot
-   ```
+  `put your answer here`
 
-   ```cfg
-   set timeout=5
-   set default=0
-
-   menuentry "MyLinux" {
-     linux /boot/bzImage
-     initrd /boot/myramdisk.gz
-   }
-   ```
-
-   ```bash
-   grub-mkrescue -o mylinux.iso mylinuxiso
-   ```
-
-```qemu-system-x86_64   -smp 2   -m 256   -display curses   -vga std   -cdrom mylinux.iso -nographic 
-```
 - **Explanation:**
-**Masuk ke direktori `osboot`**:
-   ```bash
-   cd osboot
-   ```
-**Buat struktur direktori ISO**:
-   ```bash
-   mkdir -p mylinuxiso/boot/grub
-   ```
-**Salin file kernel dan root filesystem**:
-   ```bash
-   cp bzImage mylinuxiso/boot
-   cp myramdisk.gz mylinuxiso/boot
-   ```
-**Buat file konfigurasi GRUB**:
-  Buat file `grub.cfg` di `mylinuxiso/boot/grub` dengan isi:
-     ```cfg
-   set timeout=5
-   set default=0
 
-   menuentry "MyLinux" {
-     linux /boot/bzImage
-     initrd /boot/myramdisk.gz
-   }
-   ```
-     > File ini akan membuat menu GRUB yang menampilkan pilihan boot bernama "MyLinux", dan mengarahkan sistem untuk menggunakan kernel dan initrd yang sudah kita sediakan.
-**Buat file ISO bootable**:
- 
-   ```bash
-   grub-mkrescue -o mylinux.iso mylinuxiso
-   ```
-**Boot iso dengan menggunakan qemu dengan settingan agar seperti terminal linux utama**:
-``` qemu-system-x86_64   -smp 2   -m 256   -display curses   -vga std   -cdrom mylinux.iso -nographic```
+  `put your answer here`
+
 - **Screenshot:**
-![after](https://drive.google.com/uc?id=1__qyQXhE5viz55ltgGDaeNJomVmbE4te)
-![after](https://drive.google.com/uc?id=1uJ51gOgxJSzsVC0xwWIg8NsCRAY0LSLj)
+
+  `put your answer here`
+
 ---
 
 Pada akhirnya sistem operasi Budiman yang telah kamu buat dengan susah payah dikumpulkan ke Dosen mengatasnamakan Budiman. Kamu tidak diberikan credit apapun. Budiman pun tidak memberikan kata terimakasih kepadamu. Kamupun kecewa tetapi setidaknya kamu telah belajar untuk menjadi pembuat sistem operasi sederhana yang andal. Selamat!
