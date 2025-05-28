@@ -388,7 +388,7 @@ praktikan2:praktikan2
   ```
   find . | cpio -oHnewc | gzip > ../myramdisk.gz
   ```
-  Generate ramdisk baru yang sudah diupdate.
+  Membuat file `initramfs` dan generate ramdisk baru yang sudah diupdate.
 
 - **Screenshot:**
 
@@ -447,7 +447,7 @@ praktikan2:praktikan2
   ```
   find . | cpio -oHnewc | gzip > ../myramdisk.gz
   ```
-  Membuat file `initramfs` dan generate ramdisk baru yang sudah diupdate.
+  Generate ramdisk baru yang sudah diupdate.
 
 - **Screenshot:**
 
