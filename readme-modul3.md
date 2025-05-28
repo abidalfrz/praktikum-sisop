@@ -661,35 +661,28 @@ Dengan settingan -nographic, semuanya dipindah ke serial console (/dev/ttyS0) se
 
 - **Code:**
 
-  ```
+```
   cp /bin/nano myramdisk/bin/
-  ```
 
-  ```
   mkdir -p myramdisk/{lib,lib64}
-  ```
 
-  ```
   mkdir -p myramdisk/lib/x86_64-linux-gnu
 cp /lib/x86_64-linux-gnu/libncursesw.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
-cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
-  ```
 
-  ```
+cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
+
+cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
+
+cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
+
 mkdir -p myramdisk/lib/terminfo/v
 cp /lib/terminfo/v/vt100 myramdisk/lib/terminfo/v/
-  ```
 
-  ```
 chmod +x myramdisk/bin/nano
-  ```
 
-  ```
 cd myramdisk 
 find . | cpio -oHnewc | gzip > ../myramdisk.gz
-  ```
+```
 
 - **Explanation:**
 
@@ -712,10 +705,7 @@ cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
 cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
 cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
 ```
-Note: dependensi ini dapat dicari dengan syntax
-```
-ldd /bin/nano
-```
+Note: dependensi ini dapat dicari dengan syntax`ldd /bin/nano`
 
 **copy vt100 ke dalam myramdisk karena nano butuh ini untuk bekerja**:
 ```
