@@ -694,6 +694,7 @@ find . | cpio -oHnewc | gzip > ../myramdisk.gz
 - **Explanation:**
 
 **Copy nano dari linux ke mini linux**:
+
 ```
 cp /bin/nano myramdisk/bin/
 ```
