@@ -167,7 +167,11 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Screenshot:**
 
-  `put your answer here`
+  Isi direktori `osboot` :
+  ![DirektoriOsboot](https://drive.google.com/uc?id=1WK9vV-n1175aemWCv1_8KGsenbWfRuc5)
+  
+  BusyBox:
+  ![BusyBox](https://drive.google.com/uc?id=1jVt5zvqfwKv5bmwhqGaFc_OJm_BZvAfj)
 
 ### Soal 2
 
@@ -184,7 +188,7 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
   cd osboot
   ```
   ```
-  mkdir -p myramdisk/{bin,dev,proc,sys,etc,tmp,home}
+  mkdir -p myramdisk/{bin,dev,proc,sys,tmp,home,sisop}
   ```
   ```
   cp -a /dev/null myramdisk/dev
@@ -207,9 +211,9 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
   Berpindah ke superuser (root) untuk melakukan perubahan.
   Berpindah ke dalam direktori `osboot`.
   ```
-  mkdir -p myramdisk/{bin,dev,proc,sys,etc,tmp,home}
+  mkdir -p myramdisk/{bin,dev,proc,sys,tmp,home,sisop}
   ```
-  Membuat direktori `myramdisk` dengan sub-direktori `bin`, `dev`, `proc`, `sys`, `etc`, `tmp`, `home`.
+  Membuat direktori `myramdisk` dengan sub-direktori `bin`, `dev`, `proc`, `sys`, `tmp`, `home`, `sisop`.
   ```
   cp -a /dev/null myramdisk/dev
   cp -a /dev/tty* myramdisk/dev
@@ -227,7 +231,15 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 
 - **Screenshot:**
 
-  `put your answer here`
+  Isi direktori `myramdisk`:
+  ![DirMyramdisk](https://drive.google.com/uc?id=1WK9vV-n1175aemWCv1_8KGsenbWfRuc5)
+  
+  Isi direktori `myramdisk/home`:
+  ![DirHome](https://drive.google.com/uc?id=15OnkBvdOjauXGNzQKFtN84X88aBy_tQH)
+
+  Isi direktori `myramdisk/dev`:
+  ![DirDev](https://drive.google.com/uc?id=1KwstZhoZfbWH7JVpbKdSR_j05Gve41k8)
+  
 
 ### Soal 3
 
@@ -258,6 +270,7 @@ praktikan2:praktikan2
   mkdir -p home/{Budiman,guest,praktikan1,praktikan2}
   ```
   ```
+  mkdir etc
   cd etc
   openssl passwd -1 Iniroot
   openssl passwd -1 PassBudi
@@ -318,6 +331,7 @@ praktikan2:praktikan2
   Membuat direktori user `root`.
   Membuat sub-direktori user `Budiman`, `guest`, `praktikan1`, dan `praktikan2` ke dalam direktori `home`.
   ```
+  mkdir etc
   cd etc
   openssl passwd -1 Iniroot
   openssl passwd -1 PassBudi
@@ -325,7 +339,7 @@ praktikan2:praktikan2
   openssl passwd -1 praktikan1
   openssl passwd -1 praktikan2
   ```
-  Berpindah ke direktori `etc`.
+  Membuat lalu berpindah ke direktori `etc`.
   Membuat password user yang dienkripsi.
   ```
   nano passwd
@@ -373,7 +387,14 @@ praktikan2:praktikan2
 
 - **Screenshot:**
 
-  `put your answer here`
+  Isi file `passwd`:
+  ![passwd](https://drive.google.com/uc?id=1kLyxG9t5Z_eAmIx5hezNPL4oLAXtPqKT)
+
+  Isi file `group`:
+  ![group](https://drive.google.com/uc?id=1Nl_8RzwZKhpaaXfiFnIu9SeXw6Wgtbd8)
+
+  Isi file `init`:
+  ![init](https://drive.google.com/uc?id=1Cc_PbNaufjNSb5-JlzW-wB7ERM9cXk1c)
 
 ### Soal 4
 
@@ -422,7 +443,8 @@ praktikan2:praktikan2
 
 - **Screenshot:**
 
-  `put your answer here`
+  Isi file `init`:
+  ![root](https://drive.google.com/uc?id=1Dfs1C8sHHjl24OBTEOMTAVBtHfW6Ekdj)
 
 ### Soal 5
 
