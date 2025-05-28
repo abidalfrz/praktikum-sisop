@@ -168,9 +168,11 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 - **Screenshot:**
 
   Isi direktori `osboot` :
+  
   ![DirektoriOsboot](https://drive.google.com/uc?id=1WK9vV-n1175aemWCv1_8KGsenbWfRuc5)
   
   BusyBox:
+  
   ![BusyBox](https://drive.google.com/uc?id=1jVt5zvqfwKv5bmwhqGaFc_OJm_BZvAfj)
 
 ### Soal 2
@@ -232,12 +234,15 @@ _One sunny morning, Budiman, an Informatics student, was assigned by his lecture
 - **Screenshot:**
 
   Isi direktori `myramdisk`:
+  
   ![DirMyramdisk](https://drive.google.com/uc?id=1WK9vV-n1175aemWCv1_8KGsenbWfRuc5)
   
   Isi direktori `myramdisk/home`:
+  
   ![DirHome](https://drive.google.com/uc?id=15OnkBvdOjauXGNzQKFtN84X88aBy_tQH)
 
   Isi direktori `myramdisk/dev`:
+  
   ![DirDev](https://drive.google.com/uc?id=1KwstZhoZfbWH7JVpbKdSR_j05Gve41k8)
   
 
@@ -388,12 +393,15 @@ praktikan2:praktikan2
 - **Screenshot:**
 
   Isi file `passwd`:
+  
   ![passwd](https://drive.google.com/uc?id=1kLyxG9t5Z_eAmIx5hezNPL4oLAXtPqKT)
 
   Isi file `group`:
+  
   ![group](https://drive.google.com/uc?id=1Nl_8RzwZKhpaaXfiFnIu9SeXw6Wgtbd8)
 
   Isi file `init`:
+  
   ![init](https://drive.google.com/uc?id=1Cc_PbNaufjNSb5-JlzW-wB7ERM9cXk1c)
 
 ### Soal 4
@@ -444,6 +452,7 @@ praktikan2:praktikan2
 - **Screenshot:**
 
   Isi file `init`:
+  
   ![root](https://drive.google.com/uc?id=1Dfs1C8sHHjl24OBTEOMTAVBtHfW6Ekdj)
 
 ### Soal 5
