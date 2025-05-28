@@ -617,15 +617,39 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+Dengan menggunakan perintah `make menuconfig` kita mengubah beberapa settingan ui input terminal agar sama dengan terminal input linux utama kita:
+```
+-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support
+```
+```
+-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Support 8250_core.* kernel options (DEPRECATED)
+```
+```
+-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Console on 8250/16550 and compatible serial port 
+```
+
+setelah itu, kita menjalankan qemu dengan pengaturan:
+```qemu-system-x86_64 -smp 2 -m 256 -display curses -vga std -kernel bzImage -initrd myramdisk.gz -nographic -append "console=ttyS0"```
 
 - **Explanation:**
 
-  `put your answer here`
+*config explanation:*
+
+Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support` adalah: 
+Mengaktifkan dukungan untuk UART serial driver 8250/16550 (seri chipset yang umum dipakai di sistem x86 dan embedded). sehingga, Kernel mampu mengakses dan menggunakan port serial yang menggunakan chip ini (misalnya /dev/ttyS0, /dev/ttyS1, dll).
+
+Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Support 8250_core.* kernel options (DEPRECATED)` adalah:
+Kernel bisa pakai 8250_core.nr_uarts=* untuk membuat ttyS0 dan seterusnya.
+
+Fungsi `-> Device Drivers > Character devices > Serial drivers > 8250/16550 and compatible serial support > Console on 8250/16550 and compatible serial port` adalah:
+
+*qemu setting explanation:*
+
+Dengan settingan -nographic, semuanya dipindah ke serial console (/dev/ttyS0) secara langsung. sedangkan, console=ttyS0 memberi tahu kernel untuk menggunakan ttyS0 (port serial pertama) sebagai console utama.
 
 - **Screenshot:**
 
-  `put your answer here`
+![after](https://drive.google.com/uc?id=1E5FAwG1OWip4shd1FY4hdu-QfrFmQyyO)
 
 ### Soal 9
 
@@ -637,15 +661,95 @@ praktikan2:praktikan2
 
 - **Code:**
 
-  `put your answer here`
+  ```
+  cp /bin/nano myramdisk/bin/
+  ```
+
+  ```
+  mkdir -p myramdisk/{lib,lib64}
+  ```
+
+  ```
+  mkdir -p myramdisk/lib/x86_64-linux-gnu
+cp /lib/x86_64-linux-gnu/libncursesw.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
+  ```
+
+  ```
+mkdir -p myramdisk/lib/terminfo/v
+cp /lib/terminfo/v/vt100 myramdisk/lib/terminfo/v/
+  ```
+
+  ```
+chmod +x myramdisk/bin/nano
+  ```
+
+  ```
+cd myramdisk 
+find . | cpio -oHnewc | gzip > ../myramdisk.gz
+  ```
 
 - **Explanation:**
 
-  `put your answer here`
+**Copy nano dari linux ke mini linux**:
+```
+cp /bin/nano myramdisk/bin/
+```
 
+**Membuat folder lib dan lib64 yang nanti akan dimasukki oleh dpendensi dari nano**:
+
+```
+mkdir -p myramdisk/{lib,lib64}
+```
+**Mengkopi dependensi dari nano ke dalam kedua folder tadi**:
+```
+mkdir -p myramdisk/lib/x86_64-linux-gnu
+cp /lib/x86_64-linux-gnu/libncursesw.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libtinfo.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libc.so.6 myramdisk/lib/x86_64-linux-gnu/
+cp /lib64/ld-linux-x86-64.so.2 myramdisk/lib64/
+```
+Note: dependensi ini dapat dicari dengan syntax
+```
+ldd /bin/nano
+```
+
+**copy vt100 ke dalam myramdisk karena nano butuh ini untuk bekerja**:
+```
+mkdir -p myramdisk/lib/terminfo/v
+cp /lib/terminfo/v/vt100 myramdisk/lib/terminfo/v/
+```
+Note: mencari vt100 bisa menggunakan `find /lib/terminfo -name "vt100"`
+
+**Mengubah izin nano agar bisa mengedit file**:
+```
+chmod +x myramdisk/bin/nano
+```
+
+**Rebuild iniramfs**:
+```
+cd myramdisk 
+find . | cpio -oHnewc | gzip > ../myramdisk.gz
+```
+
+**Jalankan qemu dengan settingan nomor 8 agar menampilkan tampilan terminal**:
+```
+qemu-system-x86_64 \
+-smp 2 \
+-m 256 \
+-nographic \
+-kernel bzImage \
+-initrd myramdisk.gz \
+-nographic \
+-append "console=ttyS0"
+```
 - **Screenshot:**
 
-  `put your answer here`
+![after](https://drive.google.com/uc?id=1O9aVx8s66tKJBSjWje3eoNk47H7uq8So)
+![after](https://drive.google.com/uc?id=1O9aVx8s66tKJBSjWje3eoNk47H7uq8So)
+![after](https://drive.google.com/uc?id=19CAAg3DDb9U2NG7WFh4qWrhm_8MDhvzo)
 
 ### Soal 10
 
@@ -656,17 +760,71 @@ praktikan2:praktikan2
 **Answer:**
 
 - **Code:**
+   ```bash
+   cd osboot
+   ```
+   
+   ```bash
+   mkdir -p mylinuxiso/boot/grub
+   ```
 
-  `put your answer here`
+   ```bash
+   cp bzImage mylinuxiso/boot
+   cp myramdisk.gz mylinuxiso/boot
+   ```
 
+   ```cfg
+   set timeout=5
+   set default=0
+
+   menuentry "MyLinux" {
+     linux /boot/bzImage
+     initrd /boot/myramdisk.gz
+   }
+   ```
+
+   ```bash
+   grub-mkrescue -o mylinux.iso mylinuxiso
+   ```
+
+```qemu-system-x86_64   -smp 2   -m 256   -display curses   -vga std   -cdrom mylinux.iso -nographic 
+```
 - **Explanation:**
+**Masuk ke direktori `osboot`**:
+   ```bash
+   cd osboot
+   ```
+**Buat struktur direktori ISO**:
+   ```bash
+   mkdir -p mylinuxiso/boot/grub
+   ```
+**Salin file kernel dan root filesystem**:
+   ```bash
+   cp bzImage mylinuxiso/boot
+   cp myramdisk.gz mylinuxiso/boot
+   ```
+**Buat file konfigurasi GRUB**:
+  Buat file `grub.cfg` di `mylinuxiso/boot/grub` dengan isi:
+     ```cfg
+   set timeout=5
+   set default=0
 
-  `put your answer here`
-
+   menuentry "MyLinux" {
+     linux /boot/bzImage
+     initrd /boot/myramdisk.gz
+   }
+   ```
+     > File ini akan membuat menu GRUB yang menampilkan pilihan boot bernama "MyLinux", dan mengarahkan sistem untuk menggunakan kernel dan initrd yang sudah kita sediakan.
+**Buat file ISO bootable**:
+ 
+   ```bash
+   grub-mkrescue -o mylinux.iso mylinuxiso
+   ```
+**Boot iso dengan menggunakan qemu dengan settingan agar seperti terminal linux utama**:
+``` qemu-system-x86_64   -smp 2   -m 256   -display curses   -vga std   -cdrom mylinux.iso -nographic```
 - **Screenshot:**
-
-  `put your answer here`
-
+![after](https://drive.google.com/uc?id=1__qyQXhE5viz55ltgGDaeNJomVmbE4te)
+![after](https://drive.google.com/uc?id=1uJ51gOgxJSzsVC0xwWIg8NsCRAY0LSLj)
 ---
 
 Pada akhirnya sistem operasi Budiman yang telah kamu buat dengan susah payah dikumpulkan ke Dosen mengatasnamakan Budiman. Kamu tidak diberikan credit apapun. Budiman pun tidak memberikan kata terimakasih kepadamu. Kamupun kecewa tetapi setidaknya kamu telah belajar untuk menjadi pembuat sistem operasi sederhana yang andal. Selamat!
