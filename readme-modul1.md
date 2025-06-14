@@ -1,9 +1,9 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Ph837wyE)
 |    NRP     |           Name           |
 | :--------: | :----------------------: |
-| 5025221133 | Muhammad Abid Baihaqi A. |
-| 5025221150 | Nabila Shafa Rahayu      |
-| 5025221153 | Kamal Zaky Adinata       |
+| 5025241133 | Muhammad Abid Baihaqi A. |
+| 5025241150 | Nabila Shafa Rahayu      |
+| 5025241153 | Kamal Zaky Adinata       |
 
 # Praktikum Modul 1 _(Module 1 Lab Work)_
 
