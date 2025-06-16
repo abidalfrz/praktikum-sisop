@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo "Helloo $USER"
-export PS1='\[\e[0;32m\]\u@OSBudiman:\w\$ \[\e[0m\]'
-
