@@ -15,7 +15,7 @@ int main() {
     clearScreen();
     printString("LilHabOS - C09\n");
 
-    while(1){
+    while(true){
         printString("$> ");
         readString(buf);
         printString("\n");
@@ -84,7 +84,7 @@ void printString(char *str){
 void readString(char *buf){
     int idx = 0;
     char ch;
-    while(1){
+    while(true){
         ch = interrupt(0x16, (0x00 << 8) | 0x00, 0, 0, 0) & 0xFF;
         if(ch == 0x0D){ // ENTER
             buf[idx] = '\0';
@@ -132,8 +132,8 @@ int prefix(char *buf, char *comms){
 int getCommands(char *buf, char commands[][128]){
     int i = 0, j = 0, k = 0;
     int length;
-    while (1) {
-        if (buf[i] == '|' || buf[i] == '\0') {
+    while(true){
+        if(buf[i] == '|' || buf[i] == '\0'){
             commands[j][k] = '\0';
             
             length = strlen(commands[j]);
