@@ -216,18 +216,27 @@ void clearScreen();
 
 ```makefile
 prepare:
+	dd if=/dev/zero of=bin/floppy.img bs=512 count=2880
 
 bootloader:
+	nasm -f bin src/bootloader.asm -o bin/bootloader.bin
 
 stdlib:
+	bcc -ansi -c -Iinclude src/std_lib.c -o bin/std_lib.o
 
 kernel:
+	nasm -f as86 src/kernel.asm -o bin/kernel-asm.o
+	bcc -ansi -c -Iinclude src/kernel.c -o bin/kernel.o
 
 link:
+	dd if=bin/bootloader.bin of=bin/floppy.img bs=512 count=1 conv=notrunc
+	ld86 -o bin/kernel.bin -d bin/kernel.o bin/kernel-asm.o bin/std_lib.o	
+	dd if=bin/kernel.bin of=bin/floppy.img bs=512 seek=1 conv=notrunc
 
 build: prepare bootloader stdlib kernel link
 
-run:
+run: 
+	bochs -f bochsrc.txt
 ```
 
 - `prepare` : membuat image disk baru `floppy.img` di direktori `bin/` dengan ukuran 1.44 MB.
@@ -529,18 +538,28 @@ void clearScreen();
 
 ```makefile
 prepare:
+	dd if=/dev/zero of=bin/floppy.img bs=512 count=2880
 
 bootloader:
+	nasm -f bin src/bootloader.asm -o bin/bootloader.bin
 
 stdlib:
+	bcc -ansi -c -Iinclude src/std_lib.c -o bin/std_lib.o
 
 kernel:
+	nasm -f as86 src/kernel.asm -o bin/kernel-asm.o
+	bcc -ansi -c -Iinclude src/kernel.c -o bin/kernel.o
 
 link:
+	dd if=bin/bootloader.bin of=bin/floppy.img bs=512 count=1 conv=notrunc
+	ld86 -o bin/kernel.bin -d bin/kernel.o bin/kernel-asm.o bin/std_lib.o	
+	dd if=bin/kernel.bin of=bin/floppy.img bs=512 seek=1 conv=notrunc
 
 build: prepare bootloader stdlib kernel link
 
-run:
+run: 
+	bochs -f bochsrc.txt
+
 ```
 
 - `prepare` : create a new disk image `floppy.img` in the `bin/` directory with a size of 1.44 MB.
