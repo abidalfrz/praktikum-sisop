@@ -47,7 +47,7 @@ int main() {
                         words = 1;
                         for(j = 0; j < length; j++){
                             if(res[j] == '\n') row++;
-                            if(res[j] == ' ' && res[j+1] != '\0' && res[j+1] == ' ') words++; 
+                            if(res[j] == ' ' && res[j+1] != '\0' && res[j+1] != ' ') words++; 
                         }
                     }
 
