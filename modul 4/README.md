@@ -25,6 +25,7 @@ Tulis laporan resmi di sini!
 
 _Write your lab work report here!_
 
+<<<<<<< HEAD
 ## Soal 4
 > Lilhab sedang ditantang oleh Trabowo (orang yang sama yang dia temui di modul ke-1) untuk membuat kernel sederhana yang memiliki fitur piping menggunakan `echo`, `grep`, dan `wc`. Lilhab merasa kesulitan dan gugup karena dia pikir pekerjaannya tidak akan selesai ketika bertemu dengan deadline. Jadi, dia memutuskan untuk bertanya kepada Grok tentang tantangan tersebut dan AI tersebut memutuskan untuk mengejeknya.
 
@@ -177,3 +178,5 @@ _Write your lab work report here!_
           - `character = 0x0F`: warna putih terang.
   - Pengaruh:
       - Layar bersih, seluruh karakter menjadi spasi berwarna putih, kursor di pojok kiri atas.
+=======
+>>>>>>> 4e4e823 (test)
