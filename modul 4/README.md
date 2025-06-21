@@ -945,6 +945,16 @@ Di dalam code `kernel.c`, untuk membuat grep membutuhkan fungsi `getCommands`, `
   ```
   Setelah loop selesai, jika `res` tidak kosong dan commands terakhir bukan `wc`, akan menampilkan `res` di layar dengan `\n`.
 
+- **Screenshot:**
+
+  **1. Echo**
+  
+  ![echoimg](https://drive.google.com/uc?id=1XpHCYmyVkR91A3jYnQ6J2Gmj6pLVDfG9)
+
+  **2. Grep**
+
+  ![grepimg](https://drive.google.com/uc?id=174FGeuOHAM9FJ-Mji9wouzK2wUDHFbNd)
+
 
 <b>d. Implementasikan perintah `wc`
 Perintah ini menghitung baris, kata, dan karakter dalam inputnya. `wc` tidak memerlukan argumen karena mendapat input dari pipe (`|`) dari perintah sebelumnya. Output harus berupa hitungan akhir dari argumen yang di-pipe yang diteruskan ke `wc`. Jika argumen tidak cocok, mengembalikan `NULL` atau `0`</b>
@@ -1104,7 +1114,11 @@ Di dalam code `kernel.c`, untuk membuat wc membutuhkan fungsi `getCommands`, `pr
   ```
   Jika semua perintah commands sudah dieksekusi, mengosongkan array `commands` sebanyak total perintah dari input.
 
+- **Screenshot:**
 
+  ![wcimg](https://drive.google.com/uc?id=1sBOxoe-G7TAdNZBTjZJ5Uzjftfls-v0F)
+
+  
 <b>e. Buat otomatisasi untuk mengompilasi dengan melengkapi file [`makefile`](./makefile).
 Untuk mengompilasi program, perintah `make build` akan digunakan. Semua hasil program yang dikompilasi akan disimpan di direktori [`bin/`](./bin). Untuk menjalankan program, perintah `make run` akan digunakan.</b>
 
@@ -1138,19 +1152,46 @@ run:
 
 - **Penjelasan:**
   1. prepare:
+     
      Membuat image disk baru `floppy.img` di direktori `bin/` dengan ukuran 1.44 MB.
+     
   2. bootloader:
+     
      Mengompilasi file `bootloader.asm` di dalam `src/` yang menghasilkan `booloader.bin` dan disimpan di direktori `bin/`.
+     
   3. stdlib:
+     
      Mengompilasi file `std_lib.c` di dalam `src/` yang menghasilkan object file `std_lib.o` dan disimpan di direktori `bin/`. Menggunakan `-Iinclude` karena file `std_lib.c` menggunakan header.
+     
   4. kernel:
+     
      - Mengompilasi file `kernel.asm` di dalam `src/` yang menghasilkan object file `kernel-asm.o` dan disimpan di direktori `bin/`.
      - Mengompilasi file `kernel.c` di dalam `src/` yang menghasilkan object file `kernel.o` dan disimpan di direktori `bin/`. Menggunakan `-Iinclude` karena file `kernel.c` menggunakan header.
+       
   5. link:
+      
      - Menulis file `bootloader.bin` di dalam `bin/` ke sektor pertama `floopy.img`.
      - Menggabungkan file `bootloader.bin`, `kernel.o`, `kernel_asm.o`, dan `std_lib.o` dalam `bin/` menjadi executable (satu binary kernel).
      - Menulis file `kernel.bin` di dalam `bin/` pada blok ke-1 `seek=1` setelah bootloader.
+       
   6. build:
-     Menjalankan tahapan `prepare`, `bootloader`, `stdlib`, `kernel`, dan `link` secara berurutan.
+     
+      Menjalankan tahapan `prepare`, `bootloader`, `stdlib`, `kernel`, dan `link` secara berurutan.
+     
   7. run:
+     
      Menjalankan `floopy.img` hasil build menggunakan `bochs` dan menggunakan file configurasi `bochsrc.txt`.
+
+- **Screenshot:**
+
+  **make build**
+
+  ![buildimg](https://drive.google.com/uc?id=1aCc4jFOImP0lPeDvgcSgy6M9T4gcwS_2)
+
+  **make run**
+
+  ![runimg](https://drive.google.com/uc?id=10qeMZ_bBnKO49bM_qhjBXxUHEPR-aXt7)
+
+  **Tampilan bochs**
+
+  ![bochsimg](https://drive.google.com/uc?id=1Co2w_y-OgUlX3pIUjzrXUaKA-NoKaK2y)
