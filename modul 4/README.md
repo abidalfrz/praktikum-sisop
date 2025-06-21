@@ -90,7 +90,7 @@ Menambahkan fungsi printString, readString, dan clearScreen di `kernel.c`.
   }
   ```
 
-- **Explanation:**
+- **Penjelasan:**
   ```
   void printString(char *str){
       int i = 0;
@@ -345,7 +345,7 @@ Fungsi di dalam [`std_lib.c`](./src/std_lib.c)
   }
   ```
 
-- **Explanation:**
+- **Penjelasan:**
   
     ```
     #include "std_lib.h"
@@ -712,7 +712,7 @@ Perintah ini mencari baris yang cocok dengan pola dalam inputnya dan mencetak ba
 
 **1. Implementasi Echo**
 
-Di dalam code `kernel.c` untuk membuat echo membutuhkan fungsi `getCommands`, `prefix`, `strcpy` serta variabel tambahan untuk menyimpan hasil input user dan hasil echo dan menggunakan fungsi `printString` untuk mencetak hasilnya.
+Di dalam code `kernel.c`, untuk membuat echo membutuhkan fungsi `getCommands`, `prefix`, `strcpy` serta variabel tambahan untuk menyimpan hasil input user dan hasil echo dan menggunakan fungsi `printString` untuk mencetak hasilnya.
 - **Penjelasan:**
   ```
   #include "kernel.h"
@@ -808,9 +808,9 @@ Di dalam code `kernel.c` untuk membuat echo membutuhkan fungsi `getCommands`, `p
 
 **2. Implementasi Grep**
 
-Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `prefix`, `findPattern`, `strcpy` serta variabel tambahan untuk menyimpan hasil input user dan hasil grep dan menggunakan fungsi `printString` untuk mencetak hasilnya. grep hanya dapat diimplementasikan setelah dipipe dengan echo.
+Di dalam code `kernel.c`, untuk membuat grep membutuhkan fungsi `getCommands`, `prefix`, `findPattern`, `strcpy` serta variabel tambahan untuk menyimpan hasil input user dan hasil grep dan menggunakan fungsi `printString` untuk mencetak hasilnya. grep hanya dapat diimplementasikan setelah dipipe dengan echo.
 
-**Penjelasan:**
+- **Penjelasan:**
   ```
   #include "kernel.h"
   ```
@@ -949,6 +949,8 @@ Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `p
 <b>d. Implementasikan perintah `wc`
 Perintah ini menghitung baris, kata, dan karakter dalam inputnya. `wc` tidak memerlukan argumen karena mendapat input dari pipe (`|`) dari perintah sebelumnya. Output harus berupa hitungan akhir dari argumen yang di-pipe yang diteruskan ke `wc`. Jika argumen tidak cocok, mengembalikan `NULL` atau `0`</b>
 
+**Answer:**
+
 Contoh penggunaan:
 
 ```bash
@@ -956,9 +958,9 @@ $> echo <argument> | wc
 $> echo <argument> | grep <argument> | wc
 ```
 
-Di dalam code `kernel.c` untuk membuat wc membutuhkan fungsi `getCommands`, `prefix`, `toChar`, `strlen` serta serta variabel tambahan untuk menyimpan hasil input user dan menggunakan fungsi `printString` untuk mencetak hasilnya.
+Di dalam code `kernel.c`, untuk membuat wc membutuhkan fungsi `getCommands`, `prefix`, `toChar`, `strlen` serta serta variabel tambahan untuk menyimpan hasil input user dan menggunakan fungsi `printString` untuk mencetak hasilnya.
 
-**Penjelasan:**
+- **Penjelasan:**
   ```
   #include "kernel.h"
   ```
@@ -1106,19 +1108,49 @@ Di dalam code `kernel.c` untuk membuat wc membutuhkan fungsi `getCommands`, `pre
 <b>e. Buat otomatisasi untuk mengompilasi dengan melengkapi file [`makefile`](./makefile).
 Untuk mengompilasi program, perintah `make build` akan digunakan. Semua hasil program yang dikompilasi akan disimpan di direktori [`bin/`](./bin). Untuk menjalankan program, perintah `make run` akan digunakan.</b>
 
+**Answer:**
 
+- **makefile:**
+```
+prepare:
+	dd if=/dev/zero of=bin/floppy.img bs=512 count=2880
 
+bootloader:
+	nasm -f bin src/bootloader.asm -o bin/bootloader.bin
 
+stdlib:
+	bcc -ansi -c -Iinclude src/std_lib.c -o bin/std_lib.o
 
-  
-  
+kernel:
+	nasm -f as86 src/kernel.asm -o bin/kernel-asm.o
+	bcc -ansi -c -Iinclude src/kernel.c -o bin/kernel.o
 
-  
-            
-          
+link:
+	dd if=bin/bootloader.bin of=bin/floppy.img bs=512 count=1 conv=notrunc
+	ld86 -o bin/kernel.bin -d bin/kernel.o bin/kernel-asm.o bin/std_lib.o	
+	dd if=bin/kernel.bin of=bin/floppy.img bs=512 seek=1 conv=notrunc
 
+build: prepare bootloader stdlib kernel link
 
-  
-    
-  
- 
+run: 
+	bochs -f bochsrc.txt
+```
+
+- **Penjelasan:**
+  1. prepare:
+     Membuat image disk baru `floppy.img` di direktori `bin/` dengan ukuran 1.44 MB.
+  2. bootloader:
+     Mengompilasi file `bootloader.asm` di dalam `src/` yang menghasilkan `booloader.bin` dan disimpan di direktori `bin/`.
+  3. stdlib:
+     Mengompilasi file `std_lib.c` di dalam `src/` yang menghasilkan object file `std_lib.o` dan disimpan di direktori `bin/`. Menggunakan `-Iinclude` karena file `std_lib.c` menggunakan header.
+  4. kernel:
+     - Mengompilasi file `kernel.asm` di dalam `src/` yang menghasilkan object file `kernel-asm.o` dan disimpan di direktori `bin/`.
+     - Mengompilasi file `kernel.c` di dalam `src/` yang menghasilkan object file `kernel.o` dan disimpan di direktori `bin/`. Menggunakan `-Iinclude` karena file `kernel.c` menggunakan header.
+  5. link:
+     - Menulis file `bootloader.bin` di dalam `bin/` ke sektor pertama `floopy.img`.
+     - Menggabungkan file `bootloader.bin`, `kernel.o`, `kernel_asm.o`, dan `std_lib.o` dalam `bin/` menjadi executable (satu binary kernel).
+     - Menulis file `kernel.bin` di dalam `bin/` pada blok ke-1 `seek=1` setelah bootloader.
+  6. build:
+     Menjalankan tahapan `prepare`, `bootloader`, `stdlib`, `kernel`, dan `link` secara berurutan.
+  7. run:
+     Menjalankan `floopy.img` hasil build menggunakan `bochs` dan menggunakan file configurasi `bochsrc.txt`.
