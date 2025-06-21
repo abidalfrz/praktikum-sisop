@@ -32,10 +32,10 @@ Lilhab sedang ditantang oleh Trabowo (orang yang sama yang dia temui di modul ke
 
 Merasa sedih, Lilhab bertekad untuk menyelesaikan pekerjaannya tepat waktu. Dia kemudian menemukan [modul](https://github.com/arsitektur-jaringan-komputer/Modul-Sisop/tree/master/Modul4) ini dan merasa sangat bersyukur. Bantu dia untuk menyelesaikan tantangan tersebut!
 
-a. Implementasikan fungsi printString, readString, dan clearScreen di kernel.c yang akan menampilkan dan membaca string di layar.
+<b>a. Implementasikan fungsi printString, readString, dan clearScreen di kernel.c yang akan menampilkan dan membaca string di layar.
 printString: Menampilkan string yang diakhiri null menggunakan int 10h dengan AH=0x0E.
 readString: Membaca karakter dari keyboard menggunakan int 16h dengan AH=0x00 sampai Enter ditekan. Termasuk penanganan Backspace dasar.
-clearScreen: Membersihkan layar dan mengatur kursor ke pojok kiri atas (0, 0) menggunakan int 10h dengan AH=0x06 dan AH=0x02. Buffer video untuk warna karakter akan diubah menjadi putih.
+clearScreen: Membersihkan layar dan mengatur kursor ke pojok kiri atas (0, 0) menggunakan int 10h dengan AH=0x06 dan AH=0x02. Buffer video untuk warna karakter akan diubah menjadi putih.</b>
 
 **Answer:**
 
@@ -235,8 +235,8 @@ Menambahkan fungsi printString, readString, dan clearScreen di `kernel.c`.
       - `char = 0x0F`: warna putih untuk foreground `F` dan warna hitam untuk background `0`.
 
 
-b. Lengkapi implementasi fungsi-fungsi di [`std_lib.h`](./include/std_lib.h) dalam [`std_lib.c`](./src/std_lib.c).
-Fungsi-fungsi di atas dapat digunakan untuk menyederhanakan implementasi fungsi `printString`, `readString`, `clearScreen`, dan fungsi-fungsi lebih lanjut yang dijelaskan pada tugas berikutnya.
+<b>b. Lengkapi implementasi fungsi-fungsi di [`std_lib.h`](./include/std_lib.h) dalam [`std_lib.c`](./src/std_lib.c).
+Fungsi-fungsi di atas dapat digunakan untuk menyederhanakan implementasi fungsi `printString`, `readString`, `clearScreen`, dan fungsi-fungsi lebih lanjut yang dijelaskan pada tugas berikutnya.</b>
 
 Fungsi di dalam [`std_lib.c`](./src/std_lib.c)
   - `div` : fungsi pembagian
@@ -703,10 +703,10 @@ void toChar(int num, char *val){
 ```
 
 
-c. Implementasikan perintah `echo`
+<b>c. Implementasikan perintah `echo`
 Perintah ini mengambil argumen yang diberikan (karakter keyboard) untuk perintah `echo` dan mencetaknya ke shell.
 <br>c. Implementasikan perintah `grep`
-Perintah ini mencari baris yang cocok dengan pola dalam inputnya dan mencetak baris yang cocok. `grep` hanya akan mengambil satu argumen menggunakan piping (`|`) dari perintah `echo`. Output harus berupa bagian dari argumen yang di-pipe yang diteruskan ke `grep`. Jika argumen tidak cocok, mengembalikan `NULL`.</br>
+Perintah ini mencari baris yang cocok dengan pola dalam inputnya dan mencetak baris yang cocok. `grep` hanya akan mengambil satu argumen menggunakan piping (`|`) dari perintah `echo`. Output harus berupa bagian dari argumen yang di-pipe yang diteruskan ke `grep`. Jika argumen tidak cocok, mengembalikan null.</br></b>
 
 **Answer:**
 
@@ -781,7 +781,7 @@ Di dalam code `kernel.c` untuk membuat echo membutuhkan fungsi `getCommands`, `p
   }
   ```
   Fungsi untuk membagi input pipeline menjadi beberapa command dengan delimiter `|`.
-  - setiap ketemu `|` atau di akhir string, menyimpan command ke array `commands` dan mengilangkan spasi berlebih di akhir command.
+  - setiap ketemu `|` atau di akhir string, menyimpan command ke array `commands` dan mengilangkan ekstra spasi di akhir command.
   - Menggunakan loop untuk memproses `buf` ke dalam array `commands`.
   - return j sebagai jumlah commands yang dipisah menggunakan delimiter `|`.
 
@@ -795,7 +795,7 @@ Di dalam code `kernel.c` untuk membuat echo membutuhkan fungsi `getCommands`, `p
   ```
   - `count` untuk menyimpan jumlah commands.
   - Melakukan loop sebanyak `count` dan mengiterasi index dari array `commands`.
-  - Jika `commands[i]` memiliki prefix "echo" maka array `res` akan menyalin string dari commands[i] dimulai dengan indeks ke 6 yaitu argumen echo.
+  - Jika `commands[i]` memiliki prefix "echo" maka array `res` akan menyalin string dari commands[i] dimulai dengan indeks ke-6 yaitu argumen echo.
 
   ```
   if(strlen(res) > 0 && !prefix(commands[count - 1], "wc")){
@@ -821,7 +821,7 @@ Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `p
   int findPattern(char *buff, char *patt);
   int prefix(char *buf, char *comm);
   ```
-  Prototipe fungsi yang digunakan untuk membuat echo.
+  Prototipe fungsi yang digunakan untuk membuat grep.
 
   ```
   char res[128];
@@ -880,7 +880,7 @@ Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `p
 
   ```
   Fungsi untuk membagi input pipeline menjadi beberapa command dengan delimiter `|`.
-  - setiap ketemu `|` atau di akhir string, menyimpan command ke array `commands` dan mengilangkan spasi berlebih di akhir command.
+  - setiap ketemu `|` atau di akhir string, menyimpan command ke array `commands` dan mengilangkan ekstra spasi di akhir command.
   - Menggunakan loop untuk memproses `buf` ke dalam array `commands`.
   - return j sebagai jumlah commands yang dipisah menggunakan delimiter `|`.
 
@@ -906,18 +906,36 @@ Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `p
   }
   ```
   Fungsi untuk mencari pattern berupa substring di string lain.
+  - Jika panjang pattern 0 (`len_patt == 0`), akan return 0.
+  - Melakukan loop utama dari `i = 0` hingga `i <= len_buf - len_patt` untuk memastikan pattern tidak melewati batas akhir buffer.  
+     - Pada setiap posisi `i`, diasumsikan pattern dimulai dari indeks tersebut.
+     - Untuk setiap posisi `i`, melakukan loop kedua untuk setiap karakter pattern.
+     - Bandingkan `buf[i + j]` dengan `patt[j]`:
+       - Jika tidak sama, keluar dari loop (break).
+       - Jika seluruh karakter pattern cocok (`j == len_patt` setelah loop), berarti pattern ditemukan di posisi `i` dan return index `i`.
+     - return -1 jika tidak pernah ditemukan hingga akhir buffer.
   
   ```
-  if (strlen(buf) > 0) {
-      count = getCommands(buf, commands);
-      for(i = 0; i < count; i++){
-          if(prefix(commands[i], "echo")){
-              strcpy(commands[i] + 5, res);
+  else if(prefix(commands[i], "grep")){
+      char *pattern = commands[i] + 5;
+
+      if(res[0] == '\0'){
+          break;
       }
+      
+      if(findPattern(res, pattern) == -1){
+          res[0] = '\0';
+          break;
+      }else{
+          clear(res, strlen(res));
+          strcpy(pattern, res);
+      }
+  }
   ```
-  - `count` untuk menyimpan jumlah commands.
-  - Melakukan loop sebanyak `count` dan mengiterasi index dari array `commands`.
-  - Jika `commands[i]` memiliki prefix "echo" maka array `res` akan menyalin string dari commands[i] dimulai dengan indeks ke 6 yaitu argumen echo.
+  - `pattern` untuk menyimpan argumen dari grep yang dimulai dari indeks ke-6
+  - Jika array `res` kosong maka loop berhenti dan grep return null.
+  - Setelah menggunakan fungsi `findPattern`, jika return -1 yang berarti `pattern` tidak ditemukan, `res` akan dikosongkan dan keluar dari loop.
+  - Jika `pattern` ditemukan, akan mengosongkan `res` dan menyalin `pattern` ke `res`.
 
   ```
   if(strlen(res) > 0 && !prefix(commands[count - 1], "wc")){
@@ -926,6 +944,174 @@ Di dalam code `kernel.c` untuk membuat grep membutuhkan fungsi `getCommands`, `p
   }
   ```
   Setelah loop selesai, jika `res` tidak kosong dan commands terakhir bukan `wc`, akan menampilkan `res` di layar dengan `\n`.
+
+
+<b>d. Implementasikan perintah `wc`
+Perintah ini menghitung baris, kata, dan karakter dalam inputnya. `wc` tidak memerlukan argumen karena mendapat input dari pipe (`|`) dari perintah sebelumnya. Output harus berupa hitungan akhir dari argumen yang di-pipe yang diteruskan ke `wc`. Jika argumen tidak cocok, mengembalikan `NULL` atau `0`</b>
+
+Contoh penggunaan:
+
+```bash
+$> echo <argument> | wc
+$> echo <argument> | grep <argument> | wc
+```
+
+Di dalam code `kernel.c` untuk membuat wc membutuhkan fungsi `getCommands`, `prefix`, `toChar`, `strlen` serta serta variabel tambahan untuk menyimpan hasil input user dan menggunakan fungsi `printString` untuk mencetak hasilnya.
+
+**Penjelasan:**
+  ```
+  #include "kernel.h"
+  ```
+  Mengakses fungsi yang ada di `kernel.h` beserta headernya.
+        
+  ```
+  int getCommands(char *buf, char commands[][128]);
+  int findPattern(char *buff, char *patt);
+  int prefix(char *buf, char *comm);
+  ```
+  Prototipe fungsi yang digunakan untuk membuat grep.
+
+  ```
+  char res[128];
+  char commands[8][128];
+  char buf[128];
+  int i, count, x;
+  ```
+  - `res` untuk menyimpan hasil perintah.
+  - `commands` (array of string) untuk menyimpan perintah.
+  - `buf` menyimpan hasil input user.
+  - variabel tambahan.
+
+  ```
+  int prefix(char *buf, char *comms){
+    int i, length;
+    length = strlen(comms);
+    for(i = 0; i < length; i++){
+        if(buf[i] != comms[i]) return 0;
+    }
+    return 1;
+  }
+  ```
+  Fungsi untuk memeriksa apakah sebuah string diawali dengan suatu string.
+  - Membandingkan menggunakan loop dengan mengiterasi indexnya. Jika ada karakter yang tidak sama return 0 sepanjang `length`.
+  - return 1 jika semua karakter sama sepanjang `length`.
+  
+  ```
+  int getCommands(char *buf, char commands[][128]){
+      int i = 0, j = 0, k = 0;
+      int length;
+      while(true){
+          if(buf[i] == '|' || buf[i] == '\0'){
+              commands[j][k] = '\0';
+              
+              length = strlen(commands[j]);
+              if(commands[j][length - 1] == ' ') commands[j][length - 1] = '\0';
+              
+              j++;
+              k = 0;
+  
+              if(buf[i] == '|'){
+                  i++;
+                  while(buf[i] == ' ') i++; 
+                  continue;
+              }else{
+                  break;
+              }
+          }
+  
+          commands[j][k++] = buf[i++];
+      }
+  
+  
+      return j;
+  }
+
+  ```
+  Fungsi untuk membagi input pipeline menjadi beberapa command dengan delimiter `|`.
+  - setiap ketemu `|` atau di akhir string, menyimpan command ke array `commands` dan mengilangkan ekstra spasi di akhir command.
+  - Menggunakan loop untuk memproses `buf` ke dalam array `commands`.
+  - return j sebagai jumlah commands yang dipisah menggunakan delimiter `|`.
+
+  ```
+  void toChar(int num, char *val){
+    int i = 0, j;
+    if(num == 0){
+        val[i++] = '0';
+        val[i] = '\0';
+        return;
+    }else if(num > 0){
+        while(num > 0){
+            val[i++] = mod(num, 10) + '0';
+            num = div(num, 10);
+        }
+    }
+    val[i] = '\0';
+    for(j = 0; j < div(i, 2); j++){
+        char tmp = val[j];
+        val[j] = val[i - j - 1];
+        val[i - j - 1] = tmp;
+    }
+  }
+  ```
+  Fungsi untuk mengonversi integer positif menjadi char lalu me-reverse hasil dari konversi.
+  - Jika `num` = 0, mengisi `val[0]` dengan 0, tutup string dengan `'\0'` lalu keluar dari fungsi.
+  - Jika `num` > 0:
+     - Menggunakan while loop `num > 0`, ambil digit paling belakang dengan `mod(num, 10)` dan menambahkan nilai ASCII '0' agar menjadi karakter digit lalu disimpan ke `val[i]`. Mengiterasi `i` untuk indeks selanjutnya.
+     - Membagi `num` dengan 10 untuk memproses digit berikutnya.
+  - Setelah loop selesai, menambahkan karakter null `\0` di akhir string.
+  - Selanjutnya, melakukan loop untuk me-reverse urutan digit dari `val`.
+
+  ```
+  else if(prefix(commands[i], "wc")){
+      int row, length, words;
+      char val[10];
+      length = strlen(res);
+      if(res[0] == '\0'){
+          words = 0;
+          row = 0;
+      }else{
+          int j;
+          row = 1;
+          words = 1;
+          for(j = 0; j < length; j++){
+              if(res[j] == '\n') row++;
+              if(res[j] == ' ' && res[j+1] != '\0' && res[j+1] != ' ') words++; 
+          }
+      }
+
+      toChar(row, val);    printString("\t"); printString(val);
+      toChar(words, val);  printString("\t"); printString(val);
+      toChar(length, val); printString("\t"); printString(val);
+      printString("\n");
+
+  }
+  ```
+  - `row`, `length`, `words` untuk menyimpan baris, kata, dan karakter.
+  - Jika array `res` kosong, `words` dan `row` diisi 0. Mengisi `length` dengan `strlen`.
+  - Jika `res` tidak kosong:
+    - `row` dan `words` diisi dengan 1.
+    - Melakukan iterasi karakter per karakter dari `res` dengan `j` sebagai variabel indeks. Jika `res[j] == \n`, `row` diincrement, Jika `res[j] == ' ' && res[j+1] != '\0' && res[j+1] != ' '`, `words` diincrement.
+  - Selanjutnya mengonversi `row`, `length`, `words` ke char dan menggunakan `printString` untuk menampilkannya menggunakan delimiter `\t`. Mencetak `\n` di akhir hasil.
+
+  ```
+  clear(buf, 128);
+  clear(res, 128);
+  for(i=0; i < count;i++){
+      clear(commands[i], 128);
+  }
+  ```
+  Jika semua perintah commands sudah dieksekusi, mengosongkan array `commands` sebanyak total perintah dari input.
+
+
+<b>e. Buat otomatisasi untuk mengompilasi dengan melengkapi file [`makefile`](./makefile).
+Untuk mengompilasi program, perintah `make build` akan digunakan. Semua hasil program yang dikompilasi akan disimpan di direktori [`bin/`](./bin). Untuk menjalankan program, perintah `make run` akan digunakan.</b>
+
+
+
+
+
+  
+  
 
   
             
