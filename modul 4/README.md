@@ -34,6 +34,20 @@ Yuadi adalah seorang developer brilian yang sedang mengerjakan proyek top-secret
 
 Setelah frustrasi dengan kebiasaan plagiat Irwandi yang merugikan prestasi akademiknya, Yuadi memutuskan untuk merancang sistem keamanan yang sophisticated. Dia akan membuat sistem file khusus yang memungkinkan mereka berdua berbagi materi umum, namun tetap menjaga kerahasiaan jawaban praktikum masing-masing.
 
+Library yang digunakan :
+```
+#define FUSE_USE_VERSION 28
+#include <fuse.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pwd.h> 
+```
+
 ### a. Setup Direktori dan Pembuatan User
 
 Langkah pertama dalam rencana Yuadi adalah mempersiapkan infrastruktur dasar sistem keamanannya.
@@ -119,6 +133,82 @@ Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi 
 Selanjutnya, Yuadi ingin memastikan sistem filenya mudah diakses namun tetap terkontrol.
 
 FUSE mount point Anda (contoh: `/mnt/secure_fs`) harus menampilkan konten dari `source directory` secara langsung. Jadi, jika Anda menjalankan `ls /mnt/secure_fs`, Anda akan melihat `public/`, `private_yuadi/`, dan `private_irwandi/`.
+
+**Answer:**
+- **Code:**
+  ```
+  const char *source_dir = "/home/nabila/shared_files";
+
+  static void full_path(char fpath[PATH_MAX], const char *path) {
+    snprintf(fpath, PATH_MAX, "%s%s", source_dir, path);
+  }
+
+  static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    filler(buf, "public", NULL, 0);
+    filler(buf, "private_yuadi", NULL, 0);
+    filler(buf, "private_irwandi", NULL, 0);
+    return 0;
+  }
+
+  static int fs_getattr(const char *path, struct stat *stbuf) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+    int res = lstat(fpath, stbuf);
+    if (res == -1) return -errno;
+    return 0;
+  }
+
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+  
+- **Penjelasan:**
+  ```
+  const char *source_dir = "/home/nabila/shared_files";
+  ```
+  `source_dir` adalah pointer bertipe `const char*` yang menunjuk ke alamat awal dari string `"/home/nabila/shared_files"`. Sebagai tempat menyimpan path `source directory`
+
+  ```
+  static void full_path(char fpath[PATH_MAX], const char *path) {
+    snprintf(fpath, PATH_MAX, "%s%s", source_dir, path);
+  }
+  ```
+  Menggabungkan `source_dir` dengan `path` dari FUSE agar mendapatkan path absolut dari file yang diminta
+
+  ```
+  static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    filler(buf, "public", NULL, 0);
+    filler(buf, "private_yuadi", NULL, 0);
+    filler(buf, "private_irwandi", NULL, 0);
+    return 0;
+  }
+  ```
+  Menampilkan direktori `public`, `private_yuadi`, `private_irwandi` setiap kali user melakukan command `ls` untuk direktori di mount point.
+
+  ```
+  static int fs_getattr(const char *path, struct stat *stbuf) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+    int res = lstat(fpath, stbuf);
+    if (res == -1) return -errno;
+    return 0;
+  }
+  ```
+  Mengambil informasi tentang file atau folder di mount point.
+
+  ```
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+  Inisialisasi FUSE dan mulai operasi file system.
 
 ### c. Read-Only untuk Semua User
 
