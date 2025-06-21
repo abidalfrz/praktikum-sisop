@@ -105,7 +105,7 @@ clearScreen: Membersihkan layar dan mengatur kursor ke pojok kiri atas (0, 0) me
   interrupt(0x10, (0x0E << 8) | str[i], 0, 0, 0)
   ```
     - `0x10` adalah integer interupsi BIOS untuk layar (video service).
-    - `AH = 0x0E`: Subfungsi "Teletype Output", Menampilkan satu karakter ke layar menggunakan BIOS teletype output. BIOS akan mencetak karakter ke layar dan menggeser           kursor satu posisi ke kanan.
+    - `AH = 0x0E`: Subfungsi "Teletype Output", Menampilkan satu karakter ke layar menggunakan BIOS teletype output. BIOS akan mencetak karakter ke layar dan menggeser kursor satu posisi ke kanan.
     - `AL = str[i]`: karakter yang akan ditampilkan.
     - Set `BX`, `CX`, `DX` sebagai 0 untuk default.
   
