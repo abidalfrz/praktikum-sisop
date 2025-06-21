@@ -48,6 +48,23 @@ Library yang digunakan :
 #include <pwd.h> 
 ```
 
+Struct FUSE :
+```
+static struct fuse_operations fs_oper = {
+    .readdir = fs_readdir,
+    .getattr = fs_getattr,
+    .mkdir   = fs_mkdir,
+    .rmdir   = fs_rmdir,
+    .create  = fs_create,
+    .unlink  = fs_unlink,
+    .write   = fs_write,
+    .rename  = fs_rename,
+    .truncate= fs_truncate,
+    .open    = fs_open,
+    .read    = fs_read
+};
+```
+
 ### a. Setup Direktori dan Pembuatan User
 
 Langkah pertama dalam rencana Yuadi adalah mempersiapkan infrastruktur dasar sistem keamanannya.
@@ -135,6 +152,7 @@ Selanjutnya, Yuadi ingin memastikan sistem filenya mudah diakses namun tetap ter
 FUSE mount point Anda (contoh: `/mnt/secure_fs`) harus menampilkan konten dari `source directory` secara langsung. Jadi, jika Anda menjalankan `ls /mnt/secure_fs`, Anda akan melihat `public/`, `private_yuadi/`, dan `private_irwandi/`.
 
 **Answer:**
+
 - **Code:**
   ```
   const char *source_dir = "/home/nabila/shared_files";
@@ -208,7 +226,11 @@ FUSE mount point Anda (contoh: `/mnt/secure_fs`) harus menampilkan konten dari `
     return fuse_main(argc, argv, &fs_oper, NULL);
   }
   ```
-  Inisialisasi FUSE dan mulai operasi file system.
+  - `umask(0)` untuk menentukan default permission file/folder yang dibuat oleh proses.
+  - Inisialisasi FUSE dan mulai operasi file system.
+
+- **Screenshot:**
+
 
 ### c. Read-Only untuk Semua User
 
@@ -218,6 +240,94 @@ Yuadi sangat kesal dengan kebiasaan Irwandi yang suka mengubah atau bahkan mengh
 2. Ini berarti tidak ada user (termasuk `root`) yang dapat membuat, memodifikasi, atau menghapus file atau folder apapun di dalam `/mnt/secure_fs`. Command seperti `mkdir`, `rmdir`, `touch`, `rm`, `cp`, `mv` harus gagal semua.
 
 "Sekarang Irwandi tidak bisa lagi menghapus jejak plagiatnya atau mengubah file jawabanku," pikir Yuadi puas.
+
+**Answer:**
+
+- **Code:**
+  ```
+  static int fs_mkdir(const char *path, mode_t mode) {
+    return -EROFS;
+  }
+
+  static int fs_rmdir(const char *path) {
+    return -EROFS;
+  }
+
+  static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+    return -EROFS;
+  }
+
+  static int fs_unlink(const char *path) {
+    return -EROFS;
+  }
+
+  static int fs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+    return -EROFS;
+  }
+
+  static int fs_rename(const char *from, const char *to) {
+    return -EROFS;
+  }
+
+  static int fs_truncate(const char *path, off_t size) {
+    return -EROFS;
+  }
+
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+
+- **Penjelasan:**
+  ```
+  static int fs_mkdir(const char *path, mode_t mode) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin membuat direktori (`mkdir`) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_rmdir(const char *path) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin menghapus direktori (`rmdir`) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin membuat file (`touch`, `nano`, dll) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_unlink(const char *path) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin menghapus file (`rm`) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin menulis ke file (`echo`, `vim`, `nano`, `cp`) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_rename(const char *from, const char *to) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin rename file, memindahkan file (`mv`) di mount point, akan menampilkan Error: Read-Only File System
+
+  ```
+  static int fs_truncate(const char *path, off_t size) {
+    return -EROFS;
+  }
+  ```
+  Ketika user ingin resize file (`truncate`) di mount point, akan menampilkan Error: Read-Only File System
 
 ### d. Akses Public Folder
 
