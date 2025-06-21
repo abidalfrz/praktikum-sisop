@@ -27,6 +27,11 @@ int main() {
                     strcpy(commands[i] + 5, res);
                 }else if(prefix(commands[i], "grep")){
                     char *pattern = commands[i] + 5;
+
+                    if(res[0] == '\0'){
+                        break;
+                    }
+
                     if(findPattern(res, pattern) == -1){
                         res[0] = '\0';
                         break;
@@ -58,6 +63,7 @@ int main() {
 
                 }
             }
+
             if(strlen(res) > 0 && !prefix(commands[count - 1], "wc")){
                 printString(res);
                 printString("\n");
