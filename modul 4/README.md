@@ -107,9 +107,9 @@ Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi 
   sudo chmod 700 private_yuadi
   sudo chmod 700 private_irwandi
   ```
-  Mengubah permission direktori `public` menjadi baca, tulis, eksekusi untuk owner, serta baca, eksekusi untuk group/user lain
-  Mengubah permission direktori `private_yuadi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
-  Mengubah permission direktori `private_irwandi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
+  - Mengubah permission direktori `public` menjadi baca, tulis, eksekusi untuk owner, serta baca, eksekusi untuk group/user lain
+  - Mengubah permission direktori `private_yuadi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
+  - Mengubah permission direktori `private_irwandi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
 
 - **Screenshot:**
   
