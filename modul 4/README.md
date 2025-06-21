@@ -51,6 +51,7 @@ Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi 
 **Answer:**
 
 - **Code:**
+  
   Terminal :
   ```
   mkdir shared_files
@@ -74,6 +75,44 @@ Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi 
   ```
 
 - **Penjelasan:**
+  ```
+  mkdir shared_files
+  cd shared_files
+  ```
+  Membuat direktori dan berpindah ke direktori `shared_files`
+
+  ```
+  mkdir public
+  mkdir private_yuadi
+  mkdir private_irwandi
+  ```
+  Membuat sub-direktori `public`, `private_yuadi`, `private_irwandi`
+
+  ```
+  sudo useradd -m yuadi
+  sudo passwd yuadi
+  sudo useradd -m irwandi
+  sudo passwd irwandi
+  ```
+  Membuat user dan password untuk user `yuadi` dan user `irwandi`
+
+  ```
+  sudo chown yuadi:yuadi private_yuadi
+  sudo chown irwandi:irwandi private_irwandi
+  ```
+  Memberikan hak kepemilikan direktori `private_yuadi` untuk grup `yuadi` dan user `yuadi`, serta direktori `private_irwandi` untuk grup `irwandi` dan user `irwandi`
+
+  ```
+  sudo chmod 755 public
+  sudo chmod 700 private_yuadi
+  sudo chmod 700 private_irwandi
+  ```
+  Mengubah permission direktori `public` menjadi baca, tulis, eksekusi untuk owner, serta baca, eksekusi untuk group/user lain
+  Mengubah permission direktori `private_yuadi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
+  Mengubah permission direktori `private_irwandi` menjadi baca, tulis, eksekusi untuk owner, serta tidak bisa akses untuk group/user lain
+
+- **Screenshot:**
+  
 
 ### b. Akses Mount Point
 
