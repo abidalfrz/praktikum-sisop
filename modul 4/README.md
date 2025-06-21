@@ -51,6 +51,7 @@ Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi 
 **Answer:**
 
 - **Code:**
+  Terminal :
   ```
   mkdir shared_files
   cd shared_files
