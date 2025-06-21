@@ -48,6 +48,32 @@ Langkah pertama dalam rencana Yuadi adalah mempersiapkan infrastruktur dasar sis
 
 Yuadi dengan bijak merancang struktur ini: folder `public` untuk berbagi materi kuliah dan referensi yang boleh diakses siapa saja, sementara setiap orang memiliki folder private untuk menyimpan jawaban praktikum mereka masing-masing.
 
+**Answer:**
+
+- **Code:**
+  ```
+  mkdir shared_files
+  cd shared_files
+
+  mkdir public
+  mkdir private_yuadi
+  mkdir private_irwandi
+
+  sudo useradd -m yuadi
+  sudo passwd yuadi
+  sudo useradd -m irwandi
+  sudo passwd irwandi
+
+  sudo chown yuadi:yuadi private_yuadi
+  sudo chown irwandi:irwandi private_irwandi
+
+  sudo chmod 755 public
+  sudo chmod 700 private_yuadi
+  sudo chmod 700 private_irwandi
+  ```
+
+- **Penjelasan:**
+
 ### b. Akses Mount Point
 
 Selanjutnya, Yuadi ingin memastikan sistem filenya mudah diakses namun tetap terkontrol.
