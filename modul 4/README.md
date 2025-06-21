@@ -488,6 +488,73 @@ Inilah bagian paling penting dari rencana Yuadi - memastikan jawaban praktikum b
 
 "Akhirnya," senyum Yuadi, "Irwandi tidak bisa lagi menyalin jawaban praktikumku, tapi dia tetap bisa mengakses materi kuliah yang memang kubuat untuk dibagi."
 
+**Answer:**
+
+- **Code:**
+  ```
+  const char *source_dir = "/home/nabila/shared_files";
+
+  static void full_path(char fpath[PATH_MAX], const char *path) {
+    snprintf(fpath, PATH_MAX, "%s%s", source_dir, path);
+  }
+
+  static int fs_open(const char *path, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    if (strncmp(path, "/private_yuadi/", 15) == 0 && fuse_get_context()->uid != getpwnam("yuadi")->pw_uid) {
+        return -EACCES;
+    }
+
+    if (strncmp(path, "/private_irwandi/", 17) == 0 && fuse_get_context()->uid != getpwnam("irwandi")->pw_uid) {
+        return -EACCES;
+    }
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    close(fd);
+    return 0;
+  }
+  ```
+
+- **Penjelasan:**
+  ```
+  const char *source_dir = "/home/nabila/shared_files";
+  ```
+  `source_dir` adalah pointer bertipe `const char*` yang menunjuk ke alamat awal dari string `"/home/nabila/shared_files"`. Sebagai tempat menyimpan path `source directory`
+
+  ```
+  static void full_path(char fpath[PATH_MAX], const char *path) {
+    snprintf(fpath, PATH_MAX, "%s%s", source_dir, path);
+  }
+  ```
+  Menggabungkan `source_dir` dengan `path` dari FUSE agar mendapatkan path absolut dari file yang diminta
+
+  ```
+  static int fs_open(const char *path, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    if (strncmp(path, "/private_yuadi/", 15) == 0 && fuse_get_context()->uid != getpwnam("yuadi")->pw_uid) {
+        return -EACCES;
+    }
+
+    if (strncmp(path, "/private_irwandi/", 17) == 0 && fuse_get_context()->uid != getpwnam("irwandi")->pw_uid) {
+        return -EACCES;
+    }
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    close(fd);
+    return 0;
+  }
+  ```
+  Mengecek siapakah yang sedang mengakses direktori. Apabila yang mengakses direktorinya adalah user selain owner, maka akan gagal dan menampilkan `Permission Denied`
+
+- **Screenshot:**
+
 ## Contoh Skenario
 
 Setelah sistem selesai, beginilah cara kerja FUSecure dalam kehidupan akademik sehari-hari:
@@ -512,6 +579,8 @@ Dengan sistem ini, kedua mahasiswa akhirnya bisa belajar dengan tenang. Yuadi bi
 - Anda dapat memilih nama apapun untuk FUSE mount point Anda.
 - Ingat untuk menggunakan argument `-o allow_other` saat mounting FUSE file system Anda agar user lain dapat mengaksesnya.
 - Fokus pada implementasi operasi FUSE yang berkaitan dengan **membaca** dan **menolak** operasi write/modify. Anda perlu memeriksa **UID** dari user yang mengakses di dalam operasi FUSE Anda untuk menerapkan pembatasan private folder.
+
+**Screenshot Skenario:**
 
 ## Soal 4
 Lilhab sedang ditantang oleh Trabowo (orang yang sama yang dia temui di modul ke-1) untuk membuat kernel sederhana yang memiliki fitur piping menggunakan `echo`, `grep`, dan `wc`. Lilhab merasa kesulitan dan gugup karena dia pikir pekerjaannya tidak akan selesai ketika bertemu dengan deadline. Jadi, dia memutuskan untuk bertanya kepada Grok tentang tantangan tersebut dan AI tersebut memutuskan untuk mengejeknya.
