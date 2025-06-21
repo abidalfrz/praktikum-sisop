@@ -329,11 +329,155 @@ Yuadi sangat kesal dengan kebiasaan Irwandi yang suka mengubah atau bahkan mengh
   ```
   Ketika user ingin resize file (`truncate`) di mount point, akan menampilkan Error: Read-Only File System
 
+  ```
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+  - `umask(0)` untuk menentukan default permission file/folder yang dibuat oleh proses.
+  - Inisialisasi FUSE dan mulai operasi file system.
+
+- **Screenshot:**
+  
+
 ### d. Akses Public Folder
 
 Meski ingin melindungi jawaban praktikumnya, Yuadi tetap ingin berbagi materi kuliah dan referensi dengan Irwandi dan teman-teman lainnya.
 
 Setiap user (termasuk `yuadi`, `irwandi`, atau lainnya) harus dapat **membaca** konten dari file apapun di dalam folder `public`. Misalnya, `cat /mnt/secure_fs/public/materi_kuliah.txt` harus berfungsi untuk `yuadi` dan `irwandi`.
+
+**Answer:**
+
+- **Code:**
+  ```
+  static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    filler(buf, "public", NULL, 0);
+    filler(buf, "private_yuadi", NULL, 0);
+    filler(buf, "private_irwandi", NULL, 0);
+    return 0;
+  }
+
+  static int fs_getattr(const char *path, struct stat *stbuf) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+    int res = lstat(fpath, stbuf);
+    if (res == -1) return -errno;
+    return 0;
+  }
+
+  static int fs_open(const char *path, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    if (strncmp(path, "/private_yuadi/", 15) == 0 && fuse_get_context()->uid != getpwnam("yuadi")->pw_uid) {
+        return -EACCES;
+    }
+
+    if (strncmp(path, "/private_irwandi/", 17) == 0 && fuse_get_context()->uid != getpwnam("irwandi")->pw_uid) {
+        return -EACCES;
+    }
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    close(fd);
+    return 0;
+  }
+
+  static int fs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    int res = pread(fd, buf, size, offset);
+    if (res == -1) res = -errno;
+
+    close(fd);
+    return res;
+  }
+
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+
+- **Penjelasan:**
+  ```
+  static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    filler(buf, "public", NULL, 0);
+    filler(buf, "private_yuadi", NULL, 0);
+    filler(buf, "private_irwandi", NULL, 0);
+    return 0;
+  }
+  ```
+  Memberi tahu FUSE bahwa ada direktori `public`, `private_yuadi`, `private_irwandi` setiap kali user melakukan command `ls` untuk direktori di mount point.
+
+  ```
+  static int fs_getattr(const char *path, struct stat *stbuf) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+    int res = lstat(fpath, stbuf);
+    if (res == -1) return -errno;
+    return 0;
+  }
+  ```
+  Mengambil informasi tentang file atau folder di mount point.
+
+  ```
+  static int fs_open(const char *path, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    if (strncmp(path, "/private_yuadi/", 15) == 0 && fuse_get_context()->uid != getpwnam("yuadi")->pw_uid) {
+        return -EACCES;
+    }
+
+    if (strncmp(path, "/private_irwandi/", 17) == 0 && fuse_get_context()->uid != getpwnam("irwandi")->pw_uid) {
+        return -EACCES;
+    }
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    close(fd);
+    return 0;
+  }
+  ```
+  Menjamin siapa saja dan direktori apa yang dapat dibuka
+
+  ```
+  static int fs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+    char fpath[PATH_MAX];
+    full_path(fpath, path);
+
+    int fd = open(fpath, O_RDONLY);
+    if (fd == -1) return -errno;
+
+    int res = pread(fd, buf, size, offset);
+    if (res == -1) res = -errno;
+
+    close(fd);
+    return res;
+  }
+  ```
+  Mengambil isi file dan menampilkan ke user.
+
+  ```
+  int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &fs_oper, NULL);
+  }
+  ```
+  - `umask(0)` untuk menentukan default permission file/folder yang dibuat oleh proses.
+  - Inisialisasi FUSE dan mulai operasi file system.
 
 ### e. Akses Private Folder yang Terbatas
 
