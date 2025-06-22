@@ -637,7 +637,7 @@ File yang nama dasarnya adalah **`secret`** (misalnya, `secret.txt`, `secret.zip
 
 - **Code:**
 
-  ```
+```
  int is_outside_working_hours()
 {
     time_t t = time(NULL);
@@ -658,10 +658,10 @@ int is_secret_file(const char *filename)
 if (is_outside_working_hours() && is_secret_file(filename)){
         return -ENOENT; //kembalikan ENOENT jika di luar jam kerja dan namanya mengandung secret name
     }
-
 ```
 
 - **Penjelasan:**
+  
 ```
  int is_outside_working_hours()
 {
@@ -675,6 +675,7 @@ if (is_outside_working_hours() && is_secret_file(filename)){
     return now < start || now >= end;
 }
 ```
+
 Fungsi time(NULL) mengambil waktu saat ini dalam format time_t dan disimpan dalam variable t, lalu Fungsi localtime() mengubah time_t menjadi struktur tm yang berisi waktu lokal. Hitung jumlah menit melalui tiga syntax kode di bawahnya. jika sudah mereturn apakah true jika menit sekarang kurang dari menit start atau lebih dari menit end.
 - **Screenshot:**
 
