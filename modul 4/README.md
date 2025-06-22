@@ -582,6 +582,150 @@ Dengan sistem ini, kedua mahasiswa akhirnya bisa belajar dengan tenang. Yuadi bi
 
 **Screenshot Skenario:**
 
+## Soal 2
+# LawakFS++ - A Cursed Filesystem with Censorship and Strict Access Policies
+
+Teja adalah seorang penggemar sepak bola yang sangat bersemangat. Namun, akhir-akhir ini, tim kesayangannya selalu tampil kurang memuaskan di setiap pertandingan. Kekalahan demi kekalahan membuat Teja muak dan kesal. "Tim lawak!" begitu umpatnya setiap kali timnya gagal meraih kemenangan. Kekecewaan Teja yang mendalam ini menginspirasi sebuah ide: bagaimana jika ada sebuah filesystem yang bisa menyensor hal-hal "lawak" di dunia ini?
+
+Untuk mengatasi hal tersebut, kami membuat filesystem terkutuk bernama **LawakFS++** yang mengimplementasikan kebijakan akses yang ketat, filtering konten dinamis, dan kontrol akses berbasis waktu untuk file tertentu. Filesystem ini dirancang sebagai read-only dan akan menerapkan perilaku khusus untuk akses file, termasuk logging dan manajemen konfigurasi.
+
+- Kamu boleh memilih direktori sumber dan mount point apa pun untuk filesystem kamu.
+
+- Kamu **wajib** mengimplementasikan setidaknya fungsi-fungsi berikut dalam struct `fuse_operations` kamu:
+
+  - `getattr`
+  - `readdir`
+  - `read`
+  - `open`
+  - `access`
+
+- Kamu diperbolehkan menyertakan fungsi tambahan seperti `init`, `destroy`, atau `readlink` jika diperlukan untuk implementasi kamu.
+
+- **LawakFS++ harus benar-benar read-only.** Setiap percobaan untuk melakukan operasi tulis dalam FUSE mountpoint harus **gagal** dan mengembalikan error `EROFS` (Read-Only File System).
+
+- System call berikut, dan perintah yang bergantung padanya, harus diblokir secara eksplisit:
+
+  - `write()`
+  - `truncate()`
+  - `create()`
+  - `unlink()`
+  - `mkdir()`
+  - `rmdir()`
+  - `rename()`
+
+> **Catatan:** Ketika pengguna mencoba menggunakan perintah seperti `touch`, `rm`, `mv`, atau perintah lain yang melakukan operasi tulis, mereka harus menerima error "Permission denied" atau "Read-only file system" yang jelas.
+
+### a. Ekstensi File Tersembunyi
+
+Setelah beberapa hari menggunakan filesystem biasa, Teja menyadari bahwa ekstensi file selalu membuat orang-orang bisa mengetahui jenis file dengan mudah. "Ini terlalu mudah ditebak!" pikirnya. Dia ingin membuat sistem yang lebih misterius, di mana orang harus benar-benar membuka file untuk mengetahui isinya.
+
+Semua file yang ditampilkan dalam FUSE mountpoint harus **ekstensinya disembunyikan**.
+
+- **Contoh:** Jika file asli adalah `document.pdf`, perintah `ls` di dalam direktori FUSE hanya menampilkan `document`.
+- **Perilaku:** Meskipun ekstensi disembunyikan, mengakses file (misalnya, `cat /mnt/your_mountpoint/document`) harus dipetakan dengan benar ke path dan nama aslinya (misalnya, `source_dir/document.pdf`).
+
+### b. Akses Berbasis Waktu untuk File Secret
+
+Suatu hari, Teja menemukan koleksi foto-foto memalukan dari masa SMA-nya yang tersimpan dalam folder bernama "secret". Dia tidak ingin orang lain bisa mengakses file-file tersebut kapan saja, terutama saat dia sedang tidur atau tidak ada di rumah. "File rahasia hanya boleh dibuka saat jam kerja!" putusnya dengan tegas.
+
+File yang nama dasarnya adalah **`secret`** (misalnya, `secret.txt`, `secret.zip`) hanya dapat diakses **antara pukul 08:00 (8 pagi) dan 18:00 (6 sore) waktu sistem**.
+
+- **Pembatasan:** Di luar rentang waktu yang ditentukan, setiap percobaan untuk membuka, membaca, atau bahkan melakukan list file `secret` harus menghasilkan error `ENOENT` (No such file or directory).
+- **Petunjuk:** Kamu perlu mengimplementasikan kontrol akses berbasis waktu ini dalam operasi FUSE `access()` dan/atau `getattr()` kamu.
+
+### c. Filtering Konten Dinamis
+
+Kekesalan Teja terhadap hal-hal "lawak" semakin memuncak ketika dia membaca artikel online yang penuh dengan kata-kata yang membuatnya kesal. Tidak hanya itu, gambar-gambar yang dia lihat juga sering kali tidak sesuai dengan ekspektasinya. "Semua konten yang masuk ke sistem saya harus difilter dulu!" serunya sambil mengepalkan tangan.
+
+Ketika sebuah file dibuka dan dibaca, isinya harus **secara dinamis difilter atau diubah** berdasarkan tipe file yang terdeteksi:
+
+| Tipe File      | Perlakuan                                                                                 |
+| :------------- | :---------------------------------------------------------------------------------------- |
+| **File Teks**  | Semua kata yang dianggap lawak (case-insensitive) harus diganti dengan kata `"lawak"`.    |
+| **File Biner** | Konten biner mentah harus ditampilkan dalam **encoding Base64** alih-alih bentuk aslinya. |
+
+> **Catatan:** Daftar "kata-kata lawak" untuk filtering file teks akan didefinisikan secara eksternal, seperti yang ditentukan dalam persyaratan **e. Konfigurasi**.
+
+### d. Logging Akses
+
+Sebagai seorang yang paranoid, Teja merasa perlu untuk mencatat setiap aktivitas yang terjadi di filesystemnya. "Siapa tahu ada yang mencoba mengakses file-file penting saya tanpa izin," gumamnya sambil menyiapkan sistem logging. Dia ingin setiap gerakan tercatat dengan detail, lengkap dengan waktu dan identitas pelakunya.
+
+Semua operasi akses file yang dilakukan dalam LawakFS++ harus **dicatat** ke file yang terletak di **`/var/log/lawakfs.log`**.
+
+Setiap entri log harus mematuhi format berikut:
+
+```
+[YYYY-MM-DD HH:MM:SS] [UID] [ACTION] [PATH]
+```
+
+Di mana:
+
+- **`YYYY-MM-DD HH:MM:SS`**: Timestamp operasi.
+- **`UID`**: User ID pengguna yang melakukan aksi.
+- **`ACTION`**: Jenis operasi FUSE (misalnya, `READ`, `ACCESS`, `GETATTR`, `OPEN`, `READDIR`).
+- **`PATH`**: Path ke file atau direktori dalam FUSE mountpoint (misalnya, `/secret`, `/images/photo.jpg`).
+
+> **Persyaratan:** Kamu **hanya diwajibkan** untuk mencatat operasi `read` dan `access` yang berhasil. Logging operasi lain (misalnya, write yang gagal) bersifat opsional.
+
+### e. Konfigurasi
+
+Setelah menggunakan filesystemnya beberapa minggu, Teja menyadari bahwa kebutuhannya berubah-ubah. Kadang dia ingin menambah kata-kata baru ke daftar filter, kadang dia ingin mengubah jam akses file secret, atau bahkan mengubah nama file secret itu sendiri. "Saya tidak mau repot-repot kompilasi ulang setiap kali ingin mengubah pengaturan!" keluhnya. Akhirnya dia memutuskan untuk membuat sistem konfigurasi eksternal yang fleksibel.
+
+Untuk memastikan fleksibilitas, parameter-parameter berikut **tidak boleh di-hardcode** dalam source code `lawak.c` kamu. Sebaliknya, mereka harus dapat dikonfigurasi melalui file konfigurasi eksternal (misalnya, `lawak.conf`):
+
+- **Nama file dasar** dari file 'secret' (misalnya, `secret`).
+- **Waktu mulai** untuk mengakses file 'secret'.
+- **Waktu berakhir** untuk mengakses file 'secret'.
+- **Daftar kata-kata yang dipisahkan koma** yang akan difilter dari file teks.
+
+**Contoh konten `lawak.conf`:**
+
+```
+FILTER_WORDS=ducati,ferrari,mu,chelsea,prx,onic,sisop
+SECRET_FILE_BASENAME=secret
+ACCESS_START=08:00
+ACCESS_END=18:00
+```
+
+FUSE kamu harus membaca dan mem-parse file konfigurasi ini saat inisialisasi.
+
+### Ringkasan Perilaku yang Diharapkan
+
+Untuk memastikan kejelasan, berikut adalah tabel konsolidasi perilaku yang diharapkan untuk skenario tertentu:
+
+| Skenario                                                              | Perilaku yang Diharapkan                                                                         |
+| :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- |
+| Mengakses file di luar waktu yang diizinkan (misalnya, file `secret`) | Mengembalikan `ENOENT` (No such file or directory)                                               |
+| Membaca file biner                                                    | Konten harus dioutput dalam **encoding Base64**                                                  |
+| Membaca file teks                                                     | Kata-kata yang difilter harus diganti dengan `"lawak"`                                           |
+| Melakukan list file di direktori mana pun                                  | Semua ekstensi file harus disembunyikan                                                          |
+| Mencoba menulis, membuat, atau mengganti nama file/direktori          | Mengembalikan `EROFS` (Read-Only File System)                                                    |
+| Logging operasi file                                                  | Entri baru harus ditambahkan ke `/var/log/lawakfs.log` untuk setiap operasi `read` dan `access`. |
+
+### Contoh Perilaku
+
+```bash
+$ ls /mnt/lawak/
+secret   image   readme
+
+$ cat /mnt/lawak/secret
+cat: /mnt/lawak/secret: No such file or directory
+# (Output ini diharapkan jika diakses di luar 08:00-18:00)
+
+$ cat /mnt/lawak/image
+<string base64 dari konten gambar>
+
+$ cat /mnt/lawak/readme
+"Ini adalah filesystem lawak."
+# (Kata "sisop" asli diganti dengan "lawak")
+
+$ sudo tail /var/log/lawakfs.log
+[2025-06-10 14:01:22] [1000] [READ] /readme
+[2025-06-10 14:01:24] [1000] [ACCESS] /secret
+```
+
+---
+
 ## Soal 4
 Lilhab sedang ditantang oleh Trabowo (orang yang sama yang dia temui di modul ke-1) untuk membuat kernel sederhana yang memiliki fitur piping menggunakan `echo`, `grep`, dan `wc`. Lilhab merasa kesulitan dan gugup karena dia pikir pekerjaannya tidak akan selesai ketika bertemu dengan deadline. Jadi, dia memutuskan untuk bertanya kepada Grok tentang tantangan tersebut dan AI tersebut memutuskan untuk mengejeknya.
 
