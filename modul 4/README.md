@@ -624,6 +624,128 @@ Semua file yang ditampilkan dalam FUSE mountpoint harus **ekstensinya disembunyi
 - **Contoh:** Jika file asli adalah `document.pdf`, perintah `ls` di dalam direktori FUSE hanya menampilkan `document`.
 - **Perilaku:** Meskipun ekstensi disembunyikan, mengakses file (misalnya, `cat /mnt/your_mountpoint/document`) harus dipetakan dengan benar ke path dan nama aslinya (misalnya, `source_dir/document.pdf`).
 
+**Answer:**
+
+- **Code:**
+
+```
+static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
+{ //dipanggil berkali kali tiap ada folder
+    DIR *dp;
+    struct dirent *de;
+    char fpath[1024];
+
+    if (strcmp(path, "/") == 0)
+    {
+        sprintf(fpath, "%s", dirpath); // pada pemanggilan pertama (belum masuk ke folder dalam folder)
+    }
+    else
+    {
+        sprintf(fpath, "%s%s", dirpath, path); // pemanggilan kedua jika nanti ada folder dalam folder (path diberikan oleh fuse)
+    }
+
+    dp = opendir(fpath);
+    if (dp == NULL)
+        return -errno;
+
+    filler(buf, ".", NULL, 0); //wajib ada di ls
+    filler(buf, "..", NULL, 0); //wajib ada di ls
+
+    while ((de = readdir(dp)) != NULL)
+    {
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+            continue; //skip kalau emang gada extensi 
+
+        char terminator[1024];
+        strncpy(terminator, de->d_name, sizeof(terminator) - 1);
+        terminator[sizeof(terminator) - 1] = '\0'; //copy nama file secara utuh ke dalam string baru
+
+        char *dot = strrchr(terminator, '.'); //membuat pointer ke . terakhir pada text (bisa dibandingkan menjadi string karena string auto membaca sampai \0)
+        if (dot != NULL && dot != terminator) //untuk menghindari menghapus nama file dengan titik di depan
+        {
+            *dot = '\0';
+        }
+
+        if (is_outside_working_hours() && is_secret_file(terminator)){
+            continue;
+        } //skip atau tidak tampilkan file bernama secret dan di luar jam kerja
+        struct stat st;
+        memset(&st, 0, sizeof(st));
+        st.st_ino = de->d_ino; //wajib (nomor inode(seperti unix identifier tiap file))
+        st.st_mode = de->d_type << 12; //wajib (tipe file/direcroty/atau sym)
+
+        if (filler(buf, terminator, &st, 0))
+            break;
+    }
+
+    closedir(dp);
+    return 0;
+}
+```
+
+- **Penjelasan:**
+
+-Kode xmp_readdir ini adalah fungsi yang akan dipanggil ketika system fuse menggunakan command ls di terminal. readdir akan dipanggil berkali kali secara looping jika di dalam folder ada folder lagi. 
+
+```
+if (strcmp(path, "/") == 0)
+    {
+        sprintf(fpath, "%s", dirpath); // pada pemanggilan pertama (belum masuk ke folder dalam folder)
+    }
+    else
+    {
+        sprintf(fpath, "%s%s", dirpath, path); // pemanggilan kedua jika nanti ada folder dalam folder (path diberikan oleh fuse)
+    }
+```
+-kode itu menggabungkan absolute path dengan path yang sedang ditelusuri saat ini, jika sedang berada di home folder, maka ia akan langsung memakai dirpath sebagai absolute path
+
+```
+dp = opendir(fpath);
+    if (dp == NULL)
+        return -errno;
+
+    filler(buf, ".", NULL, 0); //wajib ada di ls
+    filler(buf, "..", NULL, 0); //wajib ada di ls
+```
+-mengecek apakah folder dapat dibuka atau tidak dan memasukkan unsur unsur wajib ada dalam ls(. dan ..)
+
+```
+while ((de = readdir(dp)) != NULL)
+    {
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+            continue; //skip kalau emang gada extensi 
+
+        char terminator[1024];
+        strncpy(terminator, de->d_name, sizeof(terminator) - 1);
+        terminator[sizeof(terminator) - 1] = '\0'; //copy nama file secara utuh ke dalam string baru
+
+        char *dot = strrchr(terminator, '.'); //membuat pointer ke . terakhir pada text (bisa dibandingkan menjadi string karena string auto membaca sampai \0)
+        if (dot != NULL && dot != terminator) //untuk menghindari menghapus nama file dengan titik di depan
+        {
+            *dot = '\0';
+        }
+
+        if (is_outside_working_hours() && is_secret_file(terminator)){
+            continue;
+        } //skip atau tidak tampilkan file bernama secret dan di luar jam kerja
+        struct stat st;
+        memset(&st, 0, sizeof(st));
+        st.st_ino = de->d_ino; //wajib (nomor inode(seperti unix identifier tiap file))
+        st.st_mode = de->d_type << 12; //wajib (tipe file/direcroty/atau sym)
+
+        if (filler(buf, terminator, &st, 0))
+            break;
+    }
+
+    closedir(dp);
+    return 0;
+```
+-while loop itu digunakan untuk mengisi filler yang merupakan fungsi yang digunakan untuk menampung item item yang akan ditampilkan saat ls. sebelum langsung menempel, kita perlu memisahkan dulu ekstensi agar sesuai dengan keinginan soal dan kemudian juga mengambil data data wajib ada dengan memanfaatkan struct stat sebagai container. tidak lupa kode ini juga mengimplementasikan perintah melewati secret file jika bertemu.
+
+- **Screenshot:**
+![nomor2](https://drive.google.com/uc?id=1AXS_4TxDPSsn394sKuOm6B47lLBnjdl7)
+
+
 ### b. Akses Berbasis Waktu untuk File Secret
 
 Suatu hari, Teja menemukan koleksi foto-foto memalukan dari masa SMA-nya yang tersimpan dalam folder bernama "secret". Dia tidak ingin orang lain bisa mengakses file-file tersebut kapan saja, terutama saat dia sedang tidur atau tidak ada di rumah. "File rahasia hanya boleh dibuka saat jam kerja!" putusnya dengan tegas.
