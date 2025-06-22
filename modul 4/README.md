@@ -743,8 +743,7 @@ while ((de = readdir(dp)) != NULL)
 -while loop itu digunakan untuk mengisi filler yang merupakan fungsi yang digunakan untuk menampung item item yang akan ditampilkan saat ls. sebelum langsung menempel, kita perlu memisahkan dulu ekstensi agar sesuai dengan keinginan soal dan kemudian juga mengambil data data wajib ada dengan memanfaatkan struct stat sebagai container. tidak lupa kode ini juga mengimplementasikan perintah melewati secret file jika bertemu.
 
 - **Screenshot:**
-![nomor2](https://drive.google.com/uc?id=1AXS_4TxDPSsn394sKuOm6B47lLBnjdl7)
-
+![nomor1](https://drive.google.com/uc?id=1AXS_4TxDPSsn394sKuOm6B47lLBnjdl7)
 
 ### b. Akses Berbasis Waktu untuk File Secret
 
