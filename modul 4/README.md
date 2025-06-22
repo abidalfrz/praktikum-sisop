@@ -633,6 +633,51 @@ File yang nama dasarnya adalah **`secret`** (misalnya, `secret.txt`, `secret.zip
 - **Pembatasan:** Di luar rentang waktu yang ditentukan, setiap percobaan untuk membuka, membaca, atau bahkan melakukan list file `secret` harus menghasilkan error `ENOENT` (No such file or directory).
 - **Petunjuk:** Kamu perlu mengimplementasikan kontrol akses berbasis waktu ini dalam operasi FUSE `access()` dan/atau `getattr()` kamu.
 
+**Answer:**
+
+- **Code:**
+
+  ```
+ int is_outside_working_hours()
+{
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+
+    int now = tm_info->tm_hour * 60 + tm_info->tm_min;
+    int start = start_hour * 60 + start_minute;
+    int end = end_hour * 60 + end_minute;
+
+    return now < start || now >= end;
+}
+
+int is_secret_file(const char *filename)
+{
+    return strcmp(filename, secret_basename) == 0;
+}
+
+if (is_outside_working_hours() && is_secret_file(filename)){
+        return -ENOENT; //kembalikan ENOENT jika di luar jam kerja dan namanya mengandung secret name
+    }
+
+```
+
+- **Penjelasan:**
+```
+ int is_outside_working_hours()
+{
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+
+    int now = tm_info->tm_hour * 60 + tm_info->tm_min;
+    int start = start_hour * 60 + start_minute;
+    int end = end_hour * 60 + end_minute;
+
+    return now < start || now >= end;
+}
+```
+Fungsi time(NULL) mengambil waktu saat ini dalam format time_t dan disimpan dalam variable t, lalu Fungsi localtime() mengubah time_t menjadi struktur tm yang berisi waktu lokal. Hitung jumlah menit melalui tiga syntax kode di bawahnya. jika sudah mereturn apakah true jika menit sekarang kurang dari menit start atau lebih dari menit end.
+- **Screenshot:**
+
 ### c. Filtering Konten Dinamis
 
 Kekesalan Teja terhadap hal-hal "lawak" semakin memuncak ketika dia membaca artikel online yang penuh dengan kata-kata yang membuatnya kesal. Tidak hanya itu, gambar-gambar yang dia lihat juga sering kali tidak sesuai dengan ekspektasinya. "Semua konten yang masuk ke sistem saya harus difilter dulu!" serunya sambil mengepalkan tangan.
