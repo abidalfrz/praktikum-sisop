@@ -676,7 +676,25 @@ if (is_outside_working_hours() && is_secret_file(filename)){
 }
 ```
 
-Fungsi time(NULL) mengambil waktu saat ini dalam format time_t dan disimpan dalam variable t, lalu Fungsi localtime() mengubah time_t menjadi struktur tm yang berisi waktu lokal. Hitung jumlah menit melalui tiga syntax kode di bawahnya. jika sudah mereturn apakah true jika menit sekarang kurang dari menit start atau lebih dari menit end.
+-Fungsi time(NULL) mengambil waktu saat ini dalam format time_t dan disimpan dalam variable t, lalu Fungsi localtime() mengubah time_t menjadi struktur tm yang berisi waktu lokal. Hitung jumlah menit melalui tiga syntax kode di bawahnya. jika sudah mereturn apakah true jika menit sekarang kurang dari menit start atau lebih dari menit end.
+
+```
+int is_secret_file(const char *filename)
+{
+    return strcmp(filename, secret_basename) == 0;
+}
+```
+
+-Mengecek apakah nama file sama dengan nama file yang dijadikan 'secret'
+
+```
+if (is_outside_working_hours() && is_secret_file(filename)){
+        return -ENOENT; //kembalikan ENOENT jika di luar jam kerja dan namanya mengandung secret name
+    }
+```
+
+-taruh bongkahan kode itu di xmp_access, xmp_open, xmp_read, dan xmp_readdir(opsional) agar sistem melewati jika bertemu file dengan nama secret dan di luar jam
+
 - **Screenshot:**
 
 ### c. Filtering Konten Dinamis
