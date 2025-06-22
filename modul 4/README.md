@@ -936,6 +936,136 @@ ACCESS_END=18:00
 
 FUSE kamu harus membaca dan mem-parse file konfigurasi ini saat inisialisasi.
 
+**Answer:**
+
+- **Code:**
+
+```
+static const char *dirpath = "/home/pardofelis/Praktikum4/LawakFS++";
+static const char *logpath = "/home/pardofelis/Praktikum4/var/log/lawakfs.log";
+
+char secret_basename[256] = "secret";
+int start_hour = 8, start_minute = 0;
+int end_hour = 23, end_minute = 0;
+char *filter_words[100];
+int filter_word_count = 0;
+
+void parse_time(const char *time_str, int *hour, int *minute)
+{
+    sscanf(time_str, "%2d:%2d", hour, minute);
+}
+
+void load_config()
+{
+    char config_path[1024];
+    sprintf(config_path, "/home/pardofelis/Praktikum4/LawakFS++/lawak.conf");
+
+    FILE *config = fopen(config_path, "r");
+    if (!config)
+    {
+        fprintf(stderr, "Could not open config file: %s\n", config_path);
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), config))
+    {
+        if (strncmp(line, "ACCESS_START=", 13) == 0)
+        {
+            parse_time(line + 13, &start_hour, &start_minute);
+        }
+        else if (strncmp(line, "ACCESS_END=", 11) == 0)
+        {
+            parse_time(line + 11, &end_hour, &end_minute);
+        }
+        else if (strncmp(line, "SECRET_FILE_BASENAME=", 22) == 0)
+        {
+            sscanf(line + 22, "%s", secret_basename);
+        }
+        else if (strncmp(line, "FILTER_WORDS=", 13) == 0)
+        {
+            char *token = strtok(line + 13, ",\n");
+            while (token && filter_word_count < 100)
+            {
+                filter_words[filter_word_count++] = strdup(token);
+                token = strtok(NULL, ",\n");
+            }
+        }
+    }
+
+    fclose(config);
+}
+```
+
+- **Penjelasan:**
+```
+static const char *dirpath = "/home/pardofelis/Praktikum4/LawakFS++";
+static const char *logpath = "/home/pardofelis/Praktikum4/var/log/lawakfs.log";
+
+char secret_basename[256] = "secret";
+int start_hour = 8, start_minute = 0;
+int end_hour = 23, end_minute = 0;
+char *filter_words[100];
+int filter_word_count = 0;
+```
+-Kode ini adalah inisiasi variable global seperti dirpath yang merupakan lokasi dari folder yang dimasukkan ke mountpoint dan lokasi dari file log. Kode ini juga menginisiasi variable restriction dan filternama serta jam jika nantinya file tidak bisa dibuka.
+
+```
+void parse_time(const char *time_str, int *hour, int *minute)
+{
+    sscanf(time_str, "%2d:%2d", hour, minute);
+}
+```
+-Kode ini menscan jam dan menit dari format hh:mm
+
+```
+void load_config()
+{
+    char config_path[1024];
+    sprintf(config_path, "/home/pardofelis/Praktikum4/LawakFS++/lawak.conf");
+
+    FILE *config = fopen(config_path, "r");
+    if (!config)
+    {
+        fprintf(stderr, "Could not open config file: %s\n", config_path);
+        return;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), config))
+    {
+        if (strncmp(line, "ACCESS_START=", 13) == 0)
+        {
+            parse_time(line + 13, &start_hour, &start_minute);
+        }
+        else if (strncmp(line, "ACCESS_END=", 11) == 0)
+        {
+            parse_time(line + 11, &end_hour, &end_minute);
+        }
+        else if (strncmp(line, "SECRET_FILE_BASENAME=", 22) == 0)
+        {
+            sscanf(line + 22, "%s", secret_basename);
+        }
+        else if (strncmp(line, "FILTER_WORDS=", 13) == 0)
+        {
+            char *token = strtok(line + 13, ",\n");
+            while (token && filter_word_count < 100)
+            {
+                filter_words[filter_word_count++] = strdup(token);
+                token = strtok(NULL, ",\n");
+            }
+        }
+    }
+
+    fclose(config);
+}
+```
+-Fungsi load config berfungsi untuk memasukkan settingan config dari file lawak.conf ke dalam variable variabel yang tadi tealh diinisaisi
+
+- **Screenshot:**
+![nomor51](https://drive.google.com/uc?id=16XCPDvRpi8jRVfhApwMmvQoMGIdjgR7z)
+![nomor52](https://drive.google.com/uc?id=1w7UeTAlFdk33I2eYvm7-ckdQ4WAm_CF3)
+
 ### Ringkasan Perilaku yang Diharapkan
 
 Untuk memastikan kejelasan, berikut adalah tabel konsolidasi perilaku yang diharapkan untuk skenario tertentu:
