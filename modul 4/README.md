@@ -844,6 +844,161 @@ Ketika sebuah file dibuka dan dibaca, isinya harus **secara dinamis difilter ata
 
 > **Catatan:** Daftar "kata-kata lawak" untuk filtering file teks akan didefinisikan secara eksternal, seperti yang ditentukan dalam persyaratan **e. Konfigurasi**.
 
+**Answer:**
+
+- **Code:**
+
+```
+ static int xmp_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
+{
+    char real_path[1024];
+    char *filename = strrchr(path, '/');
+    if (filename) {
+        filename = filename + 1;
+    } else {
+        filename = (char *)path;
+    } //mengambil nama file aja
+
+    if (is_outside_working_hours() && is_secret_file(filename)){
+        return -ENOENT; //secret file kembalikan enoent
+    }
+    sprintf(real_path, "%s%s", dirpath, path); //kembalikan jadi path absolute
+
+    FILE *file = fopen(real_path, "rb");
+    if (!file)
+        return -errno;
+
+    fseek(file, 0, SEEK_END);
+    long fsize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (fsize <= 0) 
+    {
+        fclose(file);
+        return 0;
+    }
+
+    unsigned char *content = malloc(fsize);
+    fread(content, 1, fsize, file);
+    fclose(file);
+
+    int is_binary = 0;
+    for (long i = 0; i < fsize; i++)
+    {
+        if (content[i] == '\0')
+        {
+            is_binary = 1;
+            break;
+        }
+    }
+
+    char *result_buf = NULL;
+    size_t result_len = 0;
+
+    if (is_binary)
+    {
+        // jika file biner encode ke base64
+        BIO *bio, *b64;
+        BUF_MEM *bptr;
+
+        b64 = BIO_new(BIO_f_base64());
+        bio = BIO_new(BIO_s_mem());
+        bio = BIO_push(b64, bio);
+
+        BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
+        BIO_write(bio, content, fsize);
+        BIO_flush(bio);
+        BIO_get_mem_ptr(bio, &bptr);
+
+        result_buf = malloc(bptr->length + 1);
+        memcpy(result_buf, bptr->data, bptr->length);
+        result_buf[bptr->length] = '\0';
+        result_len = bptr->length;
+
+        BIO_free_all(bio);
+    }
+    else
+{
+    // jika file teks gunakan awk untuk ganti kata dengan lawak
+    char tmp_in[] = "/tmp/fuse_in_XXXXXX";
+    char tmp_out[] = "/tmp/fuse_out_XXXXXX";
+    int fd_in = mkstemp(tmp_in);
+    int fd_out = mkstemp(tmp_out);
+    if (fd_in == -1 || fd_out == -1) {
+        free(content);
+        if (fd_in != -1) close(fd_in);
+        if (fd_out != -1) close(fd_out);
+        return -EIO;
+    }
+    write(fd_in, content, fsize);
+    close(fd_in);
+    close(fd_out); // kita hanya butuh namanya, biar awk yang isi
+
+    // build awk command
+    char cmd[2048] = {0};
+    sprintf(cmd, "awk '{");
+    for (int i = 0; i < filter_word_count; i++) {
+        strcat(cmd, "gsub(/");
+        strcat(cmd, filter_words[i]);
+        strcat(cmd, "/,\"lawak\");");
+    }
+    strcat(cmd, "}1' ");
+    strcat(cmd, tmp_in);
+    strcat(cmd, " > ");
+    strcat(cmd, tmp_out);
+
+    system(cmd); // jalankan awk
+
+    // baca hasil awk
+    FILE *fout = fopen(tmp_out, "rb");
+    if (!fout) {
+        free(content);
+        unlink(tmp_in);
+        unlink(tmp_out);
+        return -EIO;
+    }
+    fseek(fout, 0, SEEK_END);
+    result_len = ftell(fout);
+    fseek(fout, 0, SEEK_SET);
+
+    result_buf = malloc(result_len + 1);
+    fread(result_buf, 1, result_len, fout);
+    result_buf[result_len] = '\0';
+    fclose(fout);
+
+    unlink(tmp_in);
+    unlink(tmp_out);
+}
+
+
+    free(content);
+
+    if (offset < result_len)
+    {
+        if (offset + size > result_len)
+            size = result_len - offset;
+        memcpy(buf, result_buf + offset, size);
+    }
+    else
+    {
+        size = 0;
+    }
+
+    write_log(path, "READ");
+    free(result_buf);
+    return size;
+}
+```
+
+- **Penjelasan:**
+-Fungsi `xmp_read` ini adalah implementasi untuk membaca file di filesystem FUSE dengan tambahan fitur modifikasi konten file sebelum dikembalikan ke pengguna. Fungsi pertama-tama mengambil nama file dari path (mengambil substring setelah `/` terakhir) untuk memeriksa apakah file tersebut adalah file rahasia. Jika file dinilai rahasia dan saat ini di luar jam kerja (dicek dengan `is_outside_working_hours` dan `is_secret_file`), fungsi langsung mengembalikan `-ENOENT` sehingga file seolah-olah tidak ada. Path absolut file dibentuk dengan menggabungkan `dirpath` dan `path`, lalu file dibuka dengan mode baca biner (`"rb"`). Jika gagal membuka file, fungsi mengembalikan kode error sesuai `errno`. Seluruh isi file dibaca ke buffer dinamis `content`. Kemudian, fungsi mendeteksi apakah file adalah file biner (dengan memeriksa apakah ada karakter null `'\0'` dalam konten). Jika file biner, konten di-encode menjadi Base64 menggunakan OpenSSL BIO, dan hasilnya disiapkan untuk dikembalikan. Jika file teks, konten ditulis sementara ke file di `/tmp`, lalu perintah `awk` dijalankan dengan `system()` untuk mengganti semua kata dalam daftar `filter_words` menjadi `"lawak"`. Hasil `awk` dibaca dari file sementara output, lalu file sementara dihapus. Setelah itu, fungsi memastikan hanya mengembalikan data yang diminta sesuai offset dan size, menyalinnya ke buffer FUSE. Setiap aksi baca dicatat ke log menggunakan `write_log`. Di akhir, alokasi memori dibersihkan sebelum mengembalikan jumlah byte yang dibaca atau 0 jika offset melebihi ukuran konten hasil. Fungsi ini memodifikasi file secara dinamis sesuai kebutuhan dan menambahkan lapisan keamanan serta audit.
+
+- **Screenshot:**
+![nomor31](https://drive.google.com/uc?id=1HPRsTSycKVVIJs1ds50Yzq5U1SYA0D6T)
+![nomor32](https://drive.google.com/uc?id=1-Hfi0DgS0-pHHZUB9SW1mAZ7NjgBDZA_)
+![nomor33](https://drive.google.com/uc?id=1H46LQyuS6mWNBt5U6dXAudEdAZamxrWM)
+![nomor34](https://drive.google.com/uc?id=1Od_h10Kd7wYelGYQgmtefJ18BL1K2yko)
+
 ### d. Logging Akses
 
 Sebagai seorang yang paranoid, Teja merasa perlu untuk mencatat setiap aktivitas yang terjadi di filesystemnya. "Siapa tahu ada yang mencoba mengakses file-file penting saya tanpa izin," gumamnya sambil menyiapkan sistem logging. Dia ingin setiap gerakan tercatat dengan detail, lengkap dengan waktu dan identitas pelakunya.
