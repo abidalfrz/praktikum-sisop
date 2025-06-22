@@ -679,13 +679,25 @@ if (is_outside_working_hours() && is_secret_file(filename)){
 -Fungsi time(NULL) mengambil waktu saat ini dalam format time_t dan disimpan dalam variable t, lalu Fungsi localtime() mengubah time_t menjadi struktur tm yang berisi waktu lokal. Hitung jumlah menit melalui tiga syntax kode di bawahnya. jika sudah mereturn apakah true jika menit sekarang kurang dari menit start atau lebih dari menit end.
 
 ```
-int is_secret_file(const char *filename)
-{
-    return strcmp(filename, secret_basename) == 0;
+int is_secret_file(const char *filename) {
+    if (!filename) return 0;
+    
+    // Extract basename tanpa ekstensi
+    char name_no_ext[256];
+    const char *base = strrchr(filename, '/');
+    base = base ? base + 1 : filename;
+    
+    strncpy(name_no_ext, base, sizeof(name_no_ext) - 1);
+    name_no_ext[sizeof(name_no_ext)-1] = '\0';
+    
+    char *dot = strrchr(name_no_ext, '.');
+    if (dot) *dot = '\0'; // Hilangkan ekstensi
+    
+    return strcmp(name_no_ext, secret_basename) == 0;
 }
 ```
 
--Mengecek apakah nama file sama dengan nama file yang dijadikan 'secret'
+-Mengecek apakah nama file sama dengan nama file yang dijadikan 'secret', dengan penerapan penghapusan ekstensi juga untuk menangani di xmp_read
 
 ```
 if (is_outside_working_hours() && is_secret_file(filename)){
@@ -696,6 +708,8 @@ if (is_outside_working_hours() && is_secret_file(filename)){
 -taruh bongkahan kode itu di xmp_access, xmp_open, xmp_read, dan xmp_readdir(opsional) agar sistem melewati jika bertemu file dengan nama secret dan di luar jam
 
 - **Screenshot:**
+
+![bukti2](https://drive.google.com/uc?id=1kI5gpsFPBOg3cBtbe4rjPiBpgjY4Vuuh)
 
 ### c. Filtering Konten Dinamis
 
