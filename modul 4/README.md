@@ -865,6 +865,55 @@ Di mana:
 
 > **Persyaratan:** Kamu **hanya diwajibkan** untuk mencatat operasi `read` dan `access` yang berhasil. Logging operasi lain (misalnya, write yang gagal) bersifat opsional.
 
+**Answer:**
+
+- **Code:**
+
+```
+void write_log(const char *fuse_path, const char *action)
+{
+    FILE *log_file = fopen(logpath, "a");
+    if (!log_file)
+        return;
+
+    time_t rawtime;
+    struct tm *timeinfo;
+    char time_str[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", timeinfo);
+
+    uid_t uid = getuid();
+
+    fprintf(log_file, "[%s] [%d] [%s] %s\n", time_str, uid, action, fuse_path);
+    fclose(log_file);
+}
+```
+
+- **Penjelasan:**
+-Fungsi write log adalah fungsi yang bertanggung jawab untuk pencatatan log.
+
+```
+FILE *log_file = fopen(logpath, "a");
+    if (!log_file)
+        return;
+
+    time_t rawtime;
+    struct tm *timeinfo;
+    char time_str[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", timeinfo);
+```
+-Kode ini mengecek apakah file log bisa diakses, logpath adalah variable global yang berisi absolute path dari file log. File kemudian diakses dengan settingan append agar tidak mengoverwrite isi file. tidak lupa, dengan pengecekan sederhana, kode juga mengecek apakah file berhasil dibuka atau tidak
+-Jika berhasil dibuka, fungsi mengambil waktu saat ini menggunakan time dan mengubahnya menjadi format waktu lokal dengan localtime. Lalu, waktu diformat menjadi string yang mudah dibaca, misalnya "2025-06-22 19:45:30", menggunakan strftime. Fungsi kemudian mendapatkan ID pengguna (UID) proses saat ini dengan getuid
+
+- **Screenshot:**
+![nomor41](https://drive.google.com/uc?id=1_6s1EkHR1GfUPZLgZkBXb0cxXgxec7Y5)
+![nomor42](https://drive.google.com/uc?id=1d58towdjZnbq4NHa1E4cfax752XZRRAY)
+
 ### e. Konfigurasi
 
 Setelah menggunakan filesystemnya beberapa minggu, Teja menyadari bahwa kebutuhannya berubah-ubah. Kadang dia ingin menambah kata-kata baru ke daftar filter, kadang dia ingin mengubah jam akses file secret, atau bahkan mengubah nama file secret itu sendiri. "Saya tidak mau repot-repot kompilasi ulang setiap kali ingin mengubah pengaturan!" keluhnya. Akhirnya dia memutuskan untuk membuat sistem konfigurasi eksternal yang fleksibel.
