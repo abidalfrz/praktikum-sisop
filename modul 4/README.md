@@ -708,8 +708,7 @@ if (is_outside_working_hours() && is_secret_file(filename)){
 -taruh bongkahan kode itu di xmp_access, xmp_open, xmp_read, dan xmp_readdir(opsional) agar sistem melewati jika bertemu file dengan nama secret dan di luar jam
 
 - **Screenshot:**
-
-![bukti2](https://drive.google.com/uc?id=1kI5gpsFPBOg3cBtbe4rjPiBpgjY4Vuuh)
+![nomor2](https://drive.google.com/uc?id=1kI5gpsFPBOg3cBtbe4rjPiBpgjY4Vuuh)
 
 ### c. Filtering Konten Dinamis
 
