@@ -32,12 +32,6 @@ void shell() {
 void printCWD(byte cwd) {}
 
 // TODO: 5. Implement parseCommand function
-/*
-buf	"cp dokumen.txt salinan.txt"
-cmd	"cp"
-arg[0]	"dokumen.txt"
-arg[1]	"salinan.txt"
-*/
 void parseCommand(char* buf, char* cmd, char arg[2][64]) {
   int i = 0, j = 0, len;
   cmd[0] = '\0';
