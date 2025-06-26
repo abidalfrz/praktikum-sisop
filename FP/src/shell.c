@@ -32,10 +32,51 @@ void shell() {
 void printCWD(byte cwd) {}
 
 // TODO: 5. Implement parseCommand function
-void parseCommand(char* buf, char* cmd, char arg[2][64]) {}
+/*
+buf	"cp dokumen.txt salinan.txt"
+cmd	"cp"
+arg[0]	"dokumen.txt"
+arg[1]	"salinan.txt"
+*/
+void parseCommand(char* buf, char* cmd, char arg[2][64]) {
+  int i = 0, j = 0, len;
+  cmd[0] = '\0';
+  arg[0][0] = '\0';
+  arg[1][0] = '\0';
+
+  len = strlen(buf);
+
+  while(i < len && buf[i] != ' ' && buf[i] != '\0'){
+    cmd[j++] = buf[i++];
+  }
+
+  cmd[j] = '\0';
+
+  while(i < len && buf[i] == ' ') i++;
+
+  j = 0;
+  while(i < len && buf[i] != ' ' && buf[i] != '\0'){
+    arg[0][j++] = buf[i++];
+  }
+
+  arg[0][j] = '\0';
+
+  while(i < len && buf[i] == ' ') i++;
+
+  j = 0;
+  while(i < len && buf[i] != ' ' && buf[i] != '\0'){
+    arg[1][j++] = buf[i++];
+  }
+
+  arg[1][j] = '\0';
+
+}
 
 // TODO: 6. Implement cd function
-void cd(byte* cwd, char* dirname) {}
+void cd(byte* cwd, char* dirname) {
+  
+
+}
 
 // TODO: 7. Implement ls function
 void ls(byte cwd, char* dirname) {}
