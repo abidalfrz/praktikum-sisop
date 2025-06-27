@@ -29,7 +29,35 @@ void shell() {
 }
 
 // TODO: 4. Implement printCWD function
-void printCWD(byte cwd) {}
+void printCWD(byte cwd) {
+  struct node_fs node_fs_buf;
+  byte stack[FS_MAX_NODE];
+  byte current;
+  int depth=0;
+
+  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+
+  if(cwd == FS_NODE_P_ROOT){
+    printString("/"); // klo dia root lgsg ngeprint / dan return
+    return;
+  }
+  
+  current = cwd;
+
+  while (current != FS_NODE_P_ROOT) { /// iterasi selama current ini ga nyentuh root
+      stack[depth] = current;
+      depth++;
+      current = node_fs_buf.nodes[current].parent_index;
+  }
+
+  depth-=1; // karena stack dimulai dari 0
+  while(depth >= 0){
+    printString("/");
+    printString(node_fs_buf.nodes[stack[depth]].node_name);
+    depth--;
+  }
+}
 
 // TODO: 5. Implement parseCommand function
 void parseCommand(char* buf, char* cmd, char arg[2][64]) {
@@ -138,6 +166,7 @@ void ls(byte cwd, char* dirname) {
 void mv(byte cwd, char* src, char* dst) {
   struct node_fs nodeT;
   int i, j = 0, idx = -1;
+  char name[64];
   byte get;
   readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
 
@@ -159,6 +188,7 @@ void mv(byte cwd, char* src, char* dst) {
   }
 
   if(idx == -1) return;
+  
 
   if(j == 0){
     nodeT.nodes[idx].parent_index = FS_NODE_P_ROOT;
@@ -174,7 +204,6 @@ void mv(byte cwd, char* src, char* dst) {
 
   }else{
     get = cwd;
-    char name[64];
     memcpy(name, dst, j);
     name[j] = '\0';
 
@@ -199,11 +228,88 @@ void mv(byte cwd, char* src, char* dst) {
 }
 
 // TODO: 9. Implement cp function
-void cp(byte cwd, char* src, char* dst) {}
+void cp(byte cwd, char* src, char* dst) {
+  struct file_metadata src_meta, dst_meta;
+  enum fs_return status;
+
+  src_meta.parent_index = cwd;
+  strcpy(src_meta.node_name, src);
+  fsRead(&src_meta, &status);
+  if (status != FS_R_SUCCESS) {
+    printString("cp: file yang akan dicopy tidak ditemukan\n");
+    return;
+  }
+
+  dst_meta.parent_index = cwd;
+  strcpy(dst_meta.node_name, dst);
+  dst_meta.filesize = src_meta.filesize;
+  memcpy(dst_meta.buffer, src_meta.buffer, src_meta.filesize);
+
+  fsWrite(&dst_meta, &status);
+  if (status == FS_SUCCESS) {
+      printString("cp: berhasil menyalin\n");
+  } else if (status == FS_W_NODE_ALREADY_EXISTS) {
+    printString("cp: nama file sudah ada\n");
+  } else if (status == FS_W_NOT_ENOUGH_SPACE) {
+    printString("cp: ruang tidak cukup\n");
+  } else {
+    printString("cp: gagal menyalin file\n");
+  }
+
+}
+
 
 // TODO: 10. Implement cat function
-void cat(byte cwd, char* filename) {}
+void cat(byte cwd, char* filename) {
+  struct file_metadata meta;
+  enum fs_return status;
+  char c[2];
+  int i;
+
+  meta.parent_index = cwd;
+  strcpy(meta.node_name, filename);
+  fsRead(&meta, &status);
+
+  if (status == FS_SUCCESS) {
+    for (i = 0; i < meta.filesize; i++) {
+      c[0] = meta.buffer[i];
+      c[1] = '\0'; 
+      printString(c);
+    }
+    printString("\n");
+  } else if (status == FS_R_NODE_NOT_FOUND) {
+    printString("cat: file tidak ditemukan\n");
+  } else if (status == FS_R_TYPE_IS_DIRECTORY) {
+    printString("cat: tidak bisa membaca direktori\n");
+  } else {
+    printString("cat: terjadi error misteriuz\n");
+  }
+}
 
 // TODO: 11. Implement mkdir function
-void mkdir(byte cwd, char* dirname) {}
+void mkdir(byte cwd, char* dirname) {
+  struct file_metadata meta;
+  enum fs_return status;
+
+  meta.parent_index = cwd;
+  strcpy(meta.node_name, dirname);
+  meta.filesize = 0; // Direktori
+  memset(meta.buffer, 0, sizeof(meta.buffer));
+
+  fsWrite(&meta, &status);
+
+  if (status == FS_SUCCESS) {
+    printString("mkdir: direktori berhasil dibuat\n");
+  } else if (status == FS_W_NODE_ALREADY_EXISTS) {
+    printString("mkdir: nama sudah ada\n");
+  } else if (status == FS_W_NOT_ENOUGH_SPACE) {
+    printString("mkdir: tidak cukup ruang\n");
+  } else if (status == FS_W_NO_FREE_NODE) {
+    printString("mkdir: tidak ada node kosong\n");
+  } else if (status == FS_W_INVALID_DIRECTORY) {
+    printString("mkdir: direktori tidak valid\n");
+  } else {
+    printString("mkdir: terjadi error misteriuz\n");
+  }
+}
 

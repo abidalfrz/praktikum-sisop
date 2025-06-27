@@ -47,3 +47,10 @@ void clear(byte* buf, unsigned int size) {
   unsigned int i;
   for (i = 0; i < size; i++) buf[i] = 0;
 }
+
+void memset(byte *buf, byte val, unsigned int size) {
+  unsigned int i;
+  for (i = 0; i < size; i++){
+    buf[i] = val;
+  }
+}
