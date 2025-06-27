@@ -132,7 +132,7 @@ void ls(byte cwd, char* dirname) {
   byte get = cwd;
   readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
 
-  if(strcmp(dirname, ".") || strcmp(dirname, "")){
+  if(strcmp(dirname, ".") || strcmp(dirname, "") || dirname[0] == '\0'){
     for(i = 0; i < FS_MAX_NODE; i++){
       if(nodeT.nodes[i].parent_index == cwd){
         printString(nodeT.nodes[i].node_name);
