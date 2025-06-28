@@ -12,6 +12,8 @@ bool strcmp(char* str1, char* str2);
 void strcpy(char* dst, char* src);
 void clear(byte* buf, unsigned int size);
 void memset(byte *buf, byte val, unsigned int size);
+void strncpy(char* dest, const char* src, int n);
+bool strncmp(char* str1, char* str2, int n);
 
 /**
  * TODO: Add your general helper function here

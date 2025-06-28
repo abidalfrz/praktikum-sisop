@@ -98,7 +98,8 @@ void parseCommand(char* buf, char* cmd, char arg[2][64]) {
 void cd(byte* cwd, char* dirname) {
   struct node_fs nodeT;
   int i;
-  readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+  readSector(&(nodeT.nodes[0]), FS_NODE_SECTOR_NUMBER);        
+  readSector(&(nodeT.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   if(strcmp(dirname, "/")){
     *cwd = FS_NODE_P_ROOT;
@@ -130,11 +131,13 @@ void ls(byte cwd, char* dirname) {
   struct node_fs nodeT;
   int i;
   byte get = cwd;
-  readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+  readSector(&(nodeT.nodes[0]), FS_NODE_SECTOR_NUMBER);        
+  readSector(&(nodeT.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   if(strcmp(dirname, ".") || strcmp(dirname, "") || dirname[0] == '\0'){
     for(i = 0; i < FS_MAX_NODE; i++){
-      if(nodeT.nodes[i].parent_index == cwd){
+      if(nodeT.nodes[i].parent_index == cwd &&
+        nodeT.nodes[i].node_name[0] != '\0'){
         printString(nodeT.nodes[i].node_name);
         printString("\n");
       }
@@ -153,7 +156,8 @@ void ls(byte cwd, char* dirname) {
     if(get == cwd) return;
   
     for(i = 0; i < FS_MAX_NODE; i++){
-      if(nodeT.nodes[i].parent_index == get){
+      if(nodeT.nodes[i].parent_index == get &&
+        nodeT.nodes[i].node_name[0] != '\0'){
         printString(nodeT.nodes[i].node_name);
         printString("\n");
       }
@@ -168,11 +172,14 @@ void mv(byte cwd, char* src, char* dst) {
   int i, j = 0, idx = -1;
   char name[64];
   byte get;
-  readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+  int slash = 0;
+  readSector(&(nodeT.nodes[0]), FS_NODE_SECTOR_NUMBER);        
+  readSector(&(nodeT.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
 
   // find /
   while(dst[j] != '\0'){
     if(dst[j] == '/'){
+      slash = 1;
       break;
     }
     j++;
@@ -189,127 +196,304 @@ void mv(byte cwd, char* src, char* dst) {
 
   if(idx == -1) return;
   
+  if(slash == 1){
+    if(j == 0){
+      nodeT.nodes[idx].parent_index = FS_NODE_P_ROOT;
+      strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
+      writeSector(&(nodeT.nodes[0]),FS_NODE_SECTOR_NUMBER);
+      writeSector(&(nodeT.nodes[32]),FS_NODE_SECTOR_NUMBER+1);
 
-  if(j == 0){
-    nodeT.nodes[idx].parent_index = FS_NODE_P_ROOT;
-    strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
-    writeSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+    }else if(j == 1){
+      // implement if ./dir1
+      get = cwd;
+      memcpy(name, dst + j + 1, strlen(dst) - j - 1);
+      name[strlen(dst) - j - 1] = '\0';
 
-  }else if(j == 2){
-    get = nodeT.nodes[cwd].parent_index;
-
-    nodeT.nodes[idx].parent_index = get;
-    strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
-    writeSector(&nodeT, FS_NODE_SECTOR_NUMBER);
-
-  }else{
-    get = cwd;
-    memcpy(name, dst, j);
-    name[j] = '\0';
-
-
-    for(i = 0; i < FS_MAX_NODE; i++){
-      if(strcmp(nodeT.nodes[i].node_name, name) &&
-      nodeT.nodes[i].parent_index == cwd &&
-      nodeT.nodes[i].data_index == FS_NODE_D_DIR){
-        get = i;
-        break;
+      for(i = 0; i < FS_MAX_NODE; i++){
+        if(strcmp(nodeT.nodes[i].node_name, name) &&
+        nodeT.nodes[i].parent_index == cwd &&
+        nodeT.nodes[i].data_index == FS_NODE_D_DIR){
+          get = i;
+          break;
+        }
       }
+
+      if(get == cwd) return;
+
+      nodeT.nodes[idx].parent_index = get;
+      writeSector(&(nodeT.nodes[0]),FS_NODE_SECTOR_NUMBER);
+      writeSector(&(nodeT.nodes[32]),FS_NODE_SECTOR_NUMBER+1);
+
+    }else if(j == 2){
+      get = nodeT.nodes[cwd].parent_index;
+
+      nodeT.nodes[idx].parent_index = get;
+      strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
+      writeSector(&(nodeT.nodes[0]),FS_NODE_SECTOR_NUMBER);
+      writeSector(&(nodeT.nodes[32]),FS_NODE_SECTOR_NUMBER+1);
+
+    }else{
+      get = cwd;
+      memcpy(name, dst, j);
+      name[j] = '\0';
+
+
+      for(i = 0; i < FS_MAX_NODE; i++){
+        if(strcmp(nodeT.nodes[i].node_name, name) &&
+        nodeT.nodes[i].parent_index == cwd &&
+        nodeT.nodes[i].data_index == FS_NODE_D_DIR){
+          get = i;
+          break;
+        }
+      }
+
+      if(get == cwd) return;
+
+      nodeT.nodes[idx].parent_index = get;
+      strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
+      writeSector(&(nodeT.nodes[0]),FS_NODE_SECTOR_NUMBER);
+      writeSector(&(nodeT.nodes[32]),FS_NODE_SECTOR_NUMBER+1);
+    
     }
-
-    if(get == cwd) return;
-
-    nodeT.nodes[idx].parent_index = get;
-    strcpy(nodeT.nodes[idx].node_name, dst + j + 1);
-    writeSector(&nodeT, FS_NODE_SECTOR_NUMBER);
-  
+  }else{
+    // change name file
+    strcpy(nodeT.nodes[idx].node_name, dst);
+    writeSector(&(nodeT.nodes[0]), FS_NODE_SECTOR_NUMBER);
+    writeSector(&(nodeT.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
   }
 
 }
 
 // TODO: 9. Implement cp function
 void cp(byte cwd, char* src, char* dst) {
-  struct file_metadata src_meta, dst_meta;
-  enum fs_return status;
+    struct map_fs map_fs_buf;
+    struct node_fs node_fs_buf;
+    struct data_fs data_fs_buf;
+    struct file_metadata src_md;
+    struct node_item now_node;
+    char dst_buf[64];
+    char dst_dir[64];
+    char dst_fname[64];
+    byte dst_idx = cwd;
+    int i, j, found = 0;
+    int empty_node, empty_data;
+    int sectors, written;
+    enum fs_return status;
 
-  src_meta.parent_index = cwd;
-  strcpy(src_meta.node_name, src);
-  fsRead(&src_meta, &status);
-  if (status != FS_R_SUCCESS) {
-    printString("cp: file yang akan dicopy tidak ditemukan\n");
-    return;
-  }
+    // Membaca sektor file system
+    readSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
+    readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
+    readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
+    readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
-  dst_meta.parent_index = cwd;
-  strcpy(dst_meta.node_name, dst);
-  dst_meta.filesize = src_meta.filesize;
-  memcpy(dst_meta.buffer, src_meta.buffer, src_meta.filesize);
+    // Mencari node file sumber
+    found = 0;
+    for (i = 0; i < FS_MAX_NODE; i++) {
+        if (strcmp(node_fs_buf.nodes[i].node_name, src) &&
+            node_fs_buf.nodes[i].parent_index == cwd) {
+            now_node = node_fs_buf.nodes[i];
+            found = 1;
+            break;
+        }
+    }
 
-  fsWrite(&dst_meta, &status);
-  if (status == FS_SUCCESS) {
-      printString("cp: berhasil menyalin\n");
-  } else if (status == FS_W_NODE_ALREADY_EXISTS) {
-    printString("cp: nama file sudah ada\n");
-  } else if (status == FS_W_NOT_ENOUGH_SPACE) {
-    printString("cp: ruang tidak cukup\n");
-  } else {
-    printString("cp: gagal menyalin file\n");
-  }
+    if (!found) {
+        return;
+    }
 
+    if (now_node.data_index == FS_NODE_D_DIR) {
+        return;
+    }
+
+    // Membaca isi file sumber
+    src_md.parent_index = cwd;
+    strcpy(src_md.node_name, src);
+    fsRead(&src_md, &status);
+
+    if (status != FS_SUCCESS) {
+        printString("Error\n");
+        return;
+    }
+
+    // Salin dst ke buffer lokal agar bisa dimodifikasi
+    strcpy(dst_buf, dst);
+
+    // Menentukan tujuan dst_idx dan nama file baru
+    if (dst_buf[0] == '/' && dst_buf[1] != '\0') {
+        dst_idx = FS_NODE_P_ROOT;
+        strcpy(dst_fname, dst_buf + 1);
+    } else if (dst_buf[0] == '.' && dst_buf[1] == '.' && dst_buf[2] == '/') {
+        dst_idx = node_fs_buf.nodes[cwd].parent_index;
+        strcpy(dst_fname, dst_buf + 3);
+    } else {
+        // Cek apakah ada '/' di dst_buf (bentuk: dir/namafile)
+        int slash_idx = -1;
+        for (i = 0; dst_buf[i] != '\0'; i++) {
+            if (dst_buf[i] == '/') {
+                slash_idx = i;
+                break;
+            }
+        }
+
+        if (slash_idx != -1) {
+            // Pisahkan direktori dan nama file
+            for (j = 0; j < slash_idx; j++) dst_dir[j] = dst_buf[j];
+            dst_dir[slash_idx] = '\0';
+            strcpy(dst_fname, dst_buf + slash_idx + 1);
+
+            // Cari direktori tujuan
+            found = 0;
+            for (i = 0; i < FS_MAX_NODE; i++) {
+                if (strcmp(node_fs_buf.nodes[i].node_name, dst_dir) &&
+                    node_fs_buf.nodes[i].parent_index == cwd &&
+                    node_fs_buf.nodes[i].data_index == FS_NODE_D_DIR) {
+                    dst_idx = i;
+                    found = 1;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return;
+            }
+        } else {
+            // dst hanya nama file saja
+            strcpy(dst_fname, dst_buf);
+        }
+    }
+
+    // Cari node kosong
+    for (empty_node = 0; empty_node < FS_MAX_NODE; empty_node++) {
+        if (node_fs_buf.nodes[empty_node].node_name[0] == '\0') break;
+    }
+    if (empty_node == FS_MAX_NODE) {
+        return;
+    }
+
+    // Cari data kosong
+    for (empty_data = 0; empty_data < FS_MAX_DATA; empty_data++) {
+        if (data_fs_buf.datas[empty_data].sectors[0] == 0x00) break;
+    }
+    if (empty_data == FS_MAX_DATA) {
+        return;
+    }
+
+    // Tulis metadata file baru
+    strcpy(node_fs_buf.nodes[empty_node].node_name, dst_fname);
+    node_fs_buf.nodes[empty_node].parent_index = dst_idx;
+    node_fs_buf.nodes[empty_node].data_index = (byte)empty_data;
+
+    // Salin isi data
+    sectors = (src_md.filesize + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    written = 0;
+    for (i = 16; i < SECTOR_SIZE && written < sectors; i++) {
+        if (!map_fs_buf.is_used[i]) {
+            map_fs_buf.is_used[i] = true;
+            data_fs_buf.datas[empty_data].sectors[written] = (byte)i;
+            writeSector(src_md.buffer + written * SECTOR_SIZE, i);
+            written++;
+        }
+    }
+
+    // Simpan hasil perubahan
+    writeSector(&map_fs_buf,             FS_MAP_SECTOR_NUMBER);
+    writeSector(node_fs_buf.nodes,       FS_NODE_SECTOR_NUMBER);
+    writeSector(node_fs_buf.nodes + 32,  FS_NODE_SECTOR_NUMBER + 1);
+    writeSector(&data_fs_buf,            FS_DATA_SECTOR_NUMBER);
+
+    printString("File berhasil disalin\n");
 }
 
 
 // TODO: 10. Implement cat function
 void cat(byte cwd, char* filename) {
+  struct node_fs nodeT;
   struct file_metadata meta;
   enum fs_return status;
   char c[2];
-  int i;
+  int i, j;
 
-  meta.parent_index = cwd;
-  strcpy(meta.node_name, filename);
-  fsRead(&meta, &status);
+  readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
 
-  if (status == FS_SUCCESS) {
-    for (i = 0; i < meta.filesize; i++) {
-      c[0] = meta.buffer[i];
-      c[1] = '\0'; 
-      printString(c);
+  for (i = 0; i < FS_MAX_NODE; i++) {
+    if (
+      strcmp(nodeT.nodes[i].node_name, filename) &&
+      nodeT.nodes[i].parent_index == cwd
+    ) {
+      if (nodeT.nodes[i].data_index == FS_NODE_D_DIR) {
+        printString("cat: tidak bisa membaca direktori\n");
+        return;
+      } else {
+        meta.parent_index = cwd;
+        
+        strcpy(meta.node_name, filename);
+        fsRead(&meta, &status);
+
+        if (status == FS_SUCCESS) {
+          for (j = 0; j < meta.filesize; j++) {
+            c[0] = meta.buffer[j];
+            c[1] = '\0';
+            printString(c);
+          }
+          printString("\n");
+        } else {
+          printString("cat: gagal membaca file\n");
+        }
+
+        return;
+      }
     }
-    printString("\n");
-  } else if (status == FS_R_NODE_NOT_FOUND) {
-    printString("cat: file tidak ditemukan\n");
-  } else if (status == FS_R_TYPE_IS_DIRECTORY) {
-    printString("cat: tidak bisa membaca direktori\n");
-  } else {
-    printString("cat: terjadi error misteriuz\n");
   }
+  printString("cat: file tidak ditemukan\n");
 }
+
+
 
 // TODO: 11. Implement mkdir function
 void mkdir(byte cwd, char* dirname) {
-  struct file_metadata meta;
-  enum fs_return status;
+  struct node_fs nodeT;
+  struct node_item new_node;
+  int i;
+  int free_node_idx = -1;
 
-  meta.parent_index = cwd;
-  strcpy(meta.node_name, dirname);
-  meta.filesize = 0; // Direktori
-  memset(meta.buffer, 0, sizeof(meta.buffer));
+  // Baca sektor node
+  readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+  readSector(((byte*)&nodeT) + SECTOR_SIZE, FS_NODE_SECTOR_NUMBER + 1);
 
-  fsWrite(&meta, &status);
-
-  if (status == FS_SUCCESS) {
-    printString("mkdir: direktori berhasil dibuat\n");
-  } else if (status == FS_W_NODE_ALREADY_EXISTS) {
-    printString("mkdir: nama sudah ada\n");
-  } else if (status == FS_W_NOT_ENOUGH_SPACE) {
-    printString("mkdir: tidak cukup ruang\n");
-  } else if (status == FS_W_NO_FREE_NODE) {
-    printString("mkdir: tidak ada node kosong\n");
-  } else if (status == FS_W_INVALID_DIRECTORY) {
-    printString("mkdir: direktori tidak valid\n");
-  } else {
-    printString("mkdir: terjadi error misteriuz\n");
+  // Cek apakah nama sudah ada di cwd
+  for (i = 0; i < FS_MAX_NODE; i++) {
+      if (nodeT.nodes[i].parent_index == cwd &&
+          strcmp(nodeT.nodes[i].node_name, dirname)) {
+          return;
+      }
   }
+
+  // Cari slot kosong
+  for (i = 0; i < FS_MAX_NODE; i++) {
+      if (nodeT.nodes[i].node_name[0] == '\0') {
+          free_node_idx = i;
+          break;
+      }
+  }
+
+  if (free_node_idx == -1) {
+      return;
+  }
+
+  // Siapkan node baru
+  new_node.parent_index = cwd;
+  new_node.data_index = FS_NODE_D_DIR;
+  memset(new_node.node_name, 0, MAX_FILENAME);
+  strncpy(new_node.node_name, dirname, MAX_FILENAME);
+
+  // Simpan node ke posisi kosong
+  nodeT.nodes[free_node_idx] = new_node;
+
+  // Tulis kembali sektor node
+  writeSector(&nodeT, FS_NODE_SECTOR_NUMBER);
+  writeSector(((byte*)&nodeT) + SECTOR_SIZE, FS_NODE_SECTOR_NUMBER + 1);
+
+  printString("Direktori berhasil dibuat\n");
 }
+
 

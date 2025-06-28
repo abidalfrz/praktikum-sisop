@@ -54,3 +54,28 @@ void memset(byte *buf, byte val, unsigned int size) {
     buf[i] = val;
   }
 }
+
+void strncpy(char* dest, char* src, int n) {
+  int i = 0;
+  while (i < n && src[i] != '\0') {
+    dest[i] = src[i];
+    i++;
+  }
+
+  while (i < n) {
+    dest[i] = '\0';
+    i++;
+  }
+}
+
+bool strncmp(char* str1, char* str2, int n) {
+  unsigned int i;
+
+  i = 0;
+  while (str1[i] != '\0' && str2[i] != '\0' && i < n) {
+    if (str1[i] != str2[i]) return false;
+    i++;
+  }
+  return true;
+}
+

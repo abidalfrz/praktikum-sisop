@@ -16,149 +16,124 @@ void fsInit() {
 void fsRead(struct file_metadata* metadata, enum fs_return* status) {
   struct node_fs node_fs_buf;
   struct data_fs data_fs_buf;
-
-  /**
-   * add local variable here
-   * ...
-  */
-
-  int found = -1;
-  byte sector;
-  int i;
-
-  readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
-
-  /**
-   *  add your code here
-   * ...
-  */
   
-  // iterasi buat nyari node yg sama kek metadata->node_name dan parent index yg sama kek metadata->parent_index
+
+  int i, j;
+  int ada = 0; 
+  int node_index = -1; 
+  byte data_index;
+
+
+  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);        
+  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);   
+  readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);                   
+
   for (i = 0; i < FS_MAX_NODE; i++) {
-    if (node_fs_buf.nodes[i].node_name[0] != '\0' &&
-        strcmp(node_fs_buf.nodes[i].node_name, metadata->node_name) == 0 &&
-        node_fs_buf.nodes[i].parent_index == metadata->parent_index) {
-      found = i;
+    struct node_item* node = &node_fs_buf.nodes[i];
+    if (node->parent_index == metadata->parent_index &&
+        strncmp(node->node_name, metadata->node_name, MAX_FILENAME) == true) {
+      ada = 1;
+      node_index = i;
       break;
     }
   }
 
-  if (found == -1) { // klo node nya gk ketemu, set status not found
+  if (!ada) {
     *status = FS_R_NODE_NOT_FOUND;
     return;
   }
-  
-  if (node_fs_buf.nodes[found].data_index == FS_NODE_D_DIR) {
-    *status = FS_R_TYPE_IS_DIRECTORY; // klo ketemu nya direktori, set status FS_R_TYPE_IS_DIRECTORY
-  } else { // node yg ditemuin file
-    metadata->filesize = 0;
-    for (i = 0; i < FS_MAX_NODE; i++) {
-      sector = data_fs_buf.datas[node_fs_buf.nodes[found].data_index].sectors[i];
-      if (sector == 0x00) {
-        break;
-      }
-      readSector(metadata->buffer + i * SECTOR_SIZE, sector);
-      metadata->filesize += SECTOR_SIZE;
-    }
-    *status = FS_R_SUCCESS;
+
+  if (node_fs_buf.nodes[node_index].data_index == FS_NODE_D_DIR) {
+    *status = FS_R_TYPE_IS_DIRECTORY;
+    return;
   }
 
+  metadata->filesize = 0;
+  data_index = node_fs_buf.nodes[node_index].data_index;
+
+  for (i = 0; i < FS_MAX_SECTOR; i++) {
+    byte sector_number = data_fs_buf.datas[data_index].sectors[i];
+    if (sector_number == 0x00) break;
+    readSector(metadata->buffer + i * SECTOR_SIZE, sector_number);
+    metadata->filesize += SECTOR_SIZE;
+  }
+
+  *status = FS_SUCCESS;
 }
 
+
 // TODO: 3. Implement fsWrite function
-void fsWrite(struct file_metadata* metadata, enum fs_return* status) {
-  struct map_fs map_fs_buf;
-  struct node_fs node_fs_buf;
-  struct data_fs data_fs_buf;
+void fsWrite(struct file_metadata* file, enum fs_return* result) {
+  struct map_fs map;
+  struct node_fs nodes;
+  struct data_fs datas;
+  int i, j;
+  int node_slot = -1, data_slot = -1, free_blocks = 0;
+  int sector_needed;
 
-  /**
-   * add local variable here
-   * ...
-  */
+  readSector(&map, FS_MAP_SECTOR_NUMBER);
+  readSector(&nodes.nodes[0], FS_NODE_SECTOR_NUMBER);
+  readSector(&nodes.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
+  readSector(&datas, FS_DATA_SECTOR_NUMBER);
 
-  int i,j=0; 
-  int empty_node = -1;
-  int empty_data = -1;
-  int free_block = 0;
-  int block_need;
-
-  readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
-  readSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
-
-  /**
-   *  add your code here
-   * ...
-  */
-
+  // Cek duplikasi nama file
   for (i = 0; i < FS_MAX_NODE; i++) {
-    if (node_fs_buf.nodes[i].node_name[0] != '\0' &&
-        strcmp(node_fs_buf.nodes[i].node_name, metadata->node_name) == 0 &&
-        node_fs_buf.nodes[i].parent_index == metadata->parent_index) {
-      *status = FS_W_NODE_ALREADY_EXISTS;
+    if (nodes.nodes[i].parent_index == file->parent_index &&
+        strncmp(nodes.nodes[i].node_name, file->node_name, MAX_FILENAME) == 0) {
+      *result = FS_W_NODE_ALREADY_EXISTS;
       return;
     }
   }
-  
 
-  // nyari node kosong
-  for (i = 0; i < FS_MAX_NODE; i++) {
-    if (node_fs_buf.nodes[i].node_name[0] == '\0') {
-      empty_node = i;
-      break;
-    }
+  // Temukan slot kosong untuk node
+  for (i = 0; i < FS_MAX_NODE && node_slot == -1; i++) {
+    if (nodes.nodes[i].node_name[0] == '\0') node_slot = i;
   }
-
-  if(empty_node==-1){
-    *status = FS_W_NO_FREE_NODE;
+  if (node_slot == -1) {
+    *result = FS_W_NO_FREE_NODE;
     return;
   }
 
-  // nyari data kosong
-  for (i=0;i<FS_MAX_DATA;i++) {
-    if (data_fs_buf.datas[i].sectors[0] == 0x00) {
-      empty_data = i;
-      break;
-    }
+  // Temukan slot data kosong
+  for (i = 0; i < FS_MAX_DATA && data_slot == -1; i++) {
+    if (datas.datas[i].sectors[0] == 0x00) data_slot = i;
   }
-
-  if(empty_data==-1){
-    *status = FS_W_NO_FREE_DATA;
+  if (data_slot == -1) {
+    *result = FS_W_NO_FREE_DATA;
     return;
   }
 
-  // nyari block kosong
-  for (i=0;i<FS_MAX_SECTOR;i++) {
-      if (!map_fs_buf.is_used[i]) {
-          free_block++;
+  // Hitung kebutuhan blok dan cek blok kosong
+  sector_needed = (file->filesize + SECTOR_SIZE - 1) / SECTOR_SIZE;
+  for (i = 16; i < 256; i++) if (!map.is_used[i]) free_blocks++;
+  if (free_blocks < sector_needed) {
+    *result = FS_W_NOT_ENOUGH_SPACE;
+    return;
+  }
+
+  // Tulis node
+  strcpy(nodes.nodes[node_slot].node_name, file->node_name);
+  nodes.nodes[node_slot].parent_index = file->parent_index;
+  nodes.nodes[node_slot].data_index = (file->filesize == 0) ? FS_NODE_D_DIR : data_slot;
+
+  // Tulis data jika file
+  if (file->filesize > 0) {
+    j = 0;
+    for (i = 16; j < sector_needed && i < 256; i++) {
+      if (!map.is_used[i]) {
+        map.is_used[i] = true;
+        datas.datas[data_slot].sectors[j] = (byte)i;
+        writeSector(file->buffer + j * SECTOR_SIZE, i);
+        j++;
       }
-  }
-
-  block_need = metadata->filesize / SECTOR_SIZE;
-  if (free_block < block_need) {
-      *status = FS_W_NOT_ENOUGH_SPACE;
-      return;
-  }
-
-  strcpy(node_fs_buf.nodes[empty_node].node_name, metadata->node_name);
-  node_fs_buf.nodes[empty_node].parent_index = metadata->parent_index;
-  node_fs_buf.nodes[empty_node].data_index = empty_data;
-
-  for(i=0;i<SECTOR_SIZE && j < block_need ; i++){
-    if(map_fs_buf.is_used[i] == 0x00){
-      data_fs_buf.datas[empty_data].sectors[j] = i;
-      writeSector(metadata->buffer + i * SECTOR_SIZE);
-      j++;
     }
   }
 
-  writeSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
-  writeSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
-  writeSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
-  writeSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER);
+  // Simpan kembali ke sektor
+  writeSector(&map, FS_MAP_SECTOR_NUMBER);
+  writeSector(&nodes.nodes[0], FS_NODE_SECTOR_NUMBER);
+  writeSector(&nodes.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
+  writeSector(&datas, FS_DATA_SECTOR_NUMBER);
 
-  *status = FS_W_SUCCESS;
+  *result = FS_W_SUCCESS;
 }
