@@ -19,9 +19,9 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
   
 
   int i, j;
-  int ada = 0; 
-  int node_index = -1; 
-  byte data_index;
+  int get = 0; 
+  int node_idx = -1; 
+  byte data_idx;
 
 
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);        
@@ -32,27 +32,27 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
     struct node_item* node = &node_fs_buf.nodes[i];
     if (node->parent_index == metadata->parent_index &&
         strncmp(node->node_name, metadata->node_name, MAX_FILENAME) == true) {
-      ada = 1;
-      node_index = i;
+      get = 1;
+      node_idx = i;
       break;
     }
   }
 
-  if (!ada) {
+  if (!get) {
     *status = FS_R_NODE_NOT_FOUND;
     return;
   }
 
-  if (node_fs_buf.nodes[node_index].data_index == FS_NODE_D_DIR) {
+  if (node_fs_buf.nodes[node_idx].data_index == FS_NODE_D_DIR) {
     *status = FS_R_TYPE_IS_DIRECTORY;
     return;
   }
 
   metadata->filesize = 0;
-  data_index = node_fs_buf.nodes[node_index].data_index;
+  data_idx = node_fs_buf.nodes[node_idx].data_index;
 
   for (i = 0; i < FS_MAX_SECTOR; i++) {
-    byte sector_number = data_fs_buf.datas[data_index].sectors[i];
+    byte sector_number = data_fs_buf.datas[data_idx].sectors[i];
     if (sector_number == 0x00) break;
     readSector(metadata->buffer + i * SECTOR_SIZE, sector_number);
     metadata->filesize += SECTOR_SIZE;
@@ -65,21 +65,21 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
 // TODO: 3. Implement fsWrite function
 void fsWrite(struct file_metadata* file, enum fs_return* result) {
   struct map_fs map;
-  struct node_fs nodes;
+  struct node_fs node_fs_buf;
   struct data_fs datas;
   int i, j;
   int node_slot = -1, data_slot = -1, free_blocks = 0;
   int sector_needed;
 
   readSector(&map, FS_MAP_SECTOR_NUMBER);
-  readSector(&nodes.nodes[0], FS_NODE_SECTOR_NUMBER);
-  readSector(&nodes.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
+  readSector(&node_fs_buf.nodes[0], FS_NODE_SECTOR_NUMBER);
+  readSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
   readSector(&datas, FS_DATA_SECTOR_NUMBER);
 
   // Cek duplikasi nama file
   for (i = 0; i < FS_MAX_NODE; i++) {
-    if (nodes.nodes[i].parent_index == file->parent_index &&
-        strncmp(nodes.nodes[i].node_name, file->node_name, MAX_FILENAME) == 0) {
+    if (node_fs_buf.nodes[i].parent_index == file->parent_index &&
+        strncmp(node_fs_buf.nodes[i].node_name, file->node_name, MAX_FILENAME) == 0) {
       *result = FS_W_NODE_ALREADY_EXISTS;
       return;
     }
@@ -87,7 +87,7 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
 
   // Temukan slot kosong untuk node
   for (i = 0; i < FS_MAX_NODE && node_slot == -1; i++) {
-    if (nodes.nodes[i].node_name[0] == '\0') node_slot = i;
+    if (node_fs_buf.nodes[i].node_name[0] == '\0') node_slot = i;
   }
   if (node_slot == -1) {
     *result = FS_W_NO_FREE_NODE;
@@ -112,9 +112,9 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
   }
 
   // Tulis node
-  strcpy(nodes.nodes[node_slot].node_name, file->node_name);
-  nodes.nodes[node_slot].parent_index = file->parent_index;
-  nodes.nodes[node_slot].data_index = (file->filesize == 0) ? FS_NODE_D_DIR : data_slot;
+  strcpy(node_fs_buf.nodes[node_slot].node_name, file->node_name);
+  node_fs_buf.nodes[node_slot].parent_index = file->parent_index;
+  node_fs_buf.nodes[node_slot].data_index = (file->filesize == 0) ? FS_NODE_D_DIR : data_slot;
 
   // Tulis data jika file
   if (file->filesize > 0) {
@@ -131,8 +131,8 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
 
   // Simpan kembali ke sektor
   writeSector(&map, FS_MAP_SECTOR_NUMBER);
-  writeSector(&nodes.nodes[0], FS_NODE_SECTOR_NUMBER);
-  writeSector(&nodes.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
+  writeSector(&node_fs_buf.nodes[0], FS_NODE_SECTOR_NUMBER);
+  writeSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
   writeSector(&datas, FS_DATA_SECTOR_NUMBER);
 
   *result = FS_W_SUCCESS;
