@@ -17,12 +17,10 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
   struct node_fs node_fs_buf;
   struct data_fs data_fs_buf;
   
-
   int i, j;
   int get = 0; 
   int node_idx = -1; 
   byte data_idx;
-
 
   readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);        
   readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);   
@@ -66,7 +64,7 @@ void fsRead(struct file_metadata* metadata, enum fs_return* status) {
 void fsWrite(struct file_metadata* file, enum fs_return* result) {
   struct map_fs map;
   struct node_fs node_fs_buf;
-  struct data_fs datas;
+  struct data_fs data_fs_buf;
   int i, j;
   int node_slot = -1, data_slot = -1, free_blocks = 0;
   int sector_needed;
@@ -74,7 +72,7 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
   readSector(&map, FS_MAP_SECTOR_NUMBER);
   readSector(&node_fs_buf.nodes[0], FS_NODE_SECTOR_NUMBER);
   readSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
-  readSector(&datas, FS_DATA_SECTOR_NUMBER);
+  readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
   // Cek duplikasi nama file
   for (i = 0; i < FS_MAX_NODE; i++) {
@@ -96,7 +94,7 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
 
   // Temukan slot data kosong
   for (i = 0; i < FS_MAX_DATA && data_slot == -1; i++) {
-    if (datas.datas[i].sectors[0] == 0x00) data_slot = i;
+    if (data_fs_buf.datas[i].sectors[0] == 0x00) data_slot = i;
   }
   if (data_slot == -1) {
     *result = FS_W_NO_FREE_DATA;
@@ -122,7 +120,7 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     for (i = 16; j < sector_needed && i < 256; i++) {
       if (!map.is_used[i]) {
         map.is_used[i] = true;
-        datas.datas[data_slot].sectors[j] = (byte)i;
+        data_fs_buf.datas[data_slot].sectors[j] = (byte)i;
         writeSector(file->buffer + j * SECTOR_SIZE, i);
         j++;
       }
@@ -133,7 +131,7 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
   writeSector(&map, FS_MAP_SECTOR_NUMBER);
   writeSector(&node_fs_buf.nodes[0], FS_NODE_SECTOR_NUMBER);
   writeSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
-  writeSector(&datas, FS_DATA_SECTOR_NUMBER);
+  writeSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
   *result = FS_W_SUCCESS;
 }

@@ -257,6 +257,14 @@ void mv(byte cwd, char* src, char* dst) {
     }
   }else{
     // change name file
+    // check if dst exists
+    for(i = 0; i < FS_MAX_NODE; i++){
+      if(strcmp(nodeT.nodes[i].node_name, dst) &&
+      nodeT.nodes[i].parent_index == cwd){
+        return; // dst already exists
+      }
+    }
+    
     strcpy(nodeT.nodes[idx].node_name, dst);
     writeSector(&(nodeT.nodes[0]), FS_NODE_SECTOR_NUMBER);
     writeSector(&(nodeT.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
