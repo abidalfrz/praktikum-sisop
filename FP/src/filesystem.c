@@ -74,7 +74,6 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
   readSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);
   readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
-  // Cek duplikasi nama file
   for (i = 0; i < FS_MAX_NODE; i++) {
     if (node_fs_buf.nodes[i].parent_index == file->parent_index &&
         strncmp(node_fs_buf.nodes[i].node_name, file->node_name, MAX_FILENAME) == 0) {
@@ -83,7 +82,6 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     }
   }
 
-  // Temukan slot kosong untuk node
   for (i = 0; i < FS_MAX_NODE && node_slot == -1; i++) {
     if (node_fs_buf.nodes[i].node_name[0] == '\0') node_slot = i;
   }
@@ -92,7 +90,6 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     return;
   }
 
-  // Temukan slot data kosong
   for (i = 0; i < FS_MAX_DATA && data_slot == -1; i++) {
     if (data_fs_buf.datas[i].sectors[0] == 0x00) data_slot = i;
   }
@@ -101,7 +98,6 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     return;
   }
 
-  // Hitung kebutuhan blok dan cek blok kosong
   sector_needed = (file->filesize + SECTOR_SIZE - 1) / SECTOR_SIZE;
   for (i = 16; i < 256; i++) if (!map.is_used[i]) free_blocks++;
   if (free_blocks < sector_needed) {
@@ -109,12 +105,10 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     return;
   }
 
-  // Tulis node
   strcpy(node_fs_buf.nodes[node_slot].node_name, file->node_name);
   node_fs_buf.nodes[node_slot].parent_index = file->parent_index;
   node_fs_buf.nodes[node_slot].data_index = (file->filesize == 0) ? FS_NODE_D_DIR : data_slot;
 
-  // Tulis data jika file
   if (file->filesize > 0) {
     j = 0;
     for (i = 16; j < sector_needed && i < 256; i++) {
@@ -127,7 +121,6 @@ void fsWrite(struct file_metadata* file, enum fs_return* result) {
     }
   }
 
-  // Simpan kembali ke sektor
   writeSector(&map, FS_MAP_SECTOR_NUMBER);
   writeSector(&node_fs_buf.nodes[0], FS_NODE_SECTOR_NUMBER);
   writeSector(&node_fs_buf.nodes[32], FS_NODE_SECTOR_NUMBER + 1);

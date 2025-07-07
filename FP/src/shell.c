@@ -288,13 +288,11 @@ void cp(byte cwd, char* src, char* dst) {
     int sectors, written;
     enum fs_return status;
 
-    // Membaca sektor file system
     readSector(&map_fs_buf, FS_MAP_SECTOR_NUMBER);
     readSector(&(node_fs_buf.nodes[0]), FS_NODE_SECTOR_NUMBER);
     readSector(&(node_fs_buf.nodes[32]), FS_NODE_SECTOR_NUMBER + 1);
     readSector(&data_fs_buf, FS_DATA_SECTOR_NUMBER);
 
-    // Mencari node file sumber
     found = 0;
     for (i = 0; i < FS_MAX_NODE; i++) {
         if (strcmp(node_fs_buf.nodes[i].node_name, src) &&
@@ -313,7 +311,6 @@ void cp(byte cwd, char* src, char* dst) {
         return;
     }
 
-    // Membaca isi file sumber
     src_md.parent_index = cwd;
     strcpy(src_md.node_name, src);
     fsRead(&src_md, &status);
@@ -323,10 +320,8 @@ void cp(byte cwd, char* src, char* dst) {
         return;
     }
 
-    // Salin dst ke buffer lokal agar bisa dimodifikasi
     strcpy(dst_buf, dst);
 
-    // Menentukan tujuan dst_idx dan nama file baru
     if (dst_buf[0] == '/' && dst_buf[1] != '\0') {
         dst_idx = FS_NODE_P_ROOT;
         strcpy(dst_fname, dst_buf + 1);
@@ -334,7 +329,6 @@ void cp(byte cwd, char* src, char* dst) {
         dst_idx = node_fs_buf.nodes[cwd].parent_index;
         strcpy(dst_fname, dst_buf + 3);
     } else {
-        // Cek apakah ada '/' di dst_buf (bentuk: dir/namafile)
         int slash_idx = -1;
         for (i = 0; dst_buf[i] != '\0'; i++) {
             if (dst_buf[i] == '/') {
@@ -344,12 +338,10 @@ void cp(byte cwd, char* src, char* dst) {
         }
 
         if (slash_idx != -1) {
-            // Pisahkan direktori dan nama file
             for (j = 0; j < slash_idx; j++) dst_dir[j] = dst_buf[j];
             dst_dir[slash_idx] = '\0';
             strcpy(dst_fname, dst_buf + slash_idx + 1);
 
-            // Cari direktori tujuan
             found = 0;
             for (i = 0; i < FS_MAX_NODE; i++) {
                 if (strcmp(node_fs_buf.nodes[i].node_name, dst_dir) &&
@@ -365,12 +357,10 @@ void cp(byte cwd, char* src, char* dst) {
                 return;
             }
         } else {
-            // dst hanya nama file saja
             strcpy(dst_fname, dst_buf);
         }
     }
 
-    // Cari node kosong
     for (empty_node = 0; empty_node < FS_MAX_NODE; empty_node++) {
         if (node_fs_buf.nodes[empty_node].node_name[0] == '\0') break;
     }
@@ -378,7 +368,6 @@ void cp(byte cwd, char* src, char* dst) {
         return;
     }
 
-    // Cari data kosong
     for (empty_data = 0; empty_data < FS_MAX_DATA; empty_data++) {
         if (data_fs_buf.datas[empty_data].sectors[0] == 0x00) break;
     }
@@ -386,12 +375,10 @@ void cp(byte cwd, char* src, char* dst) {
         return;
     }
 
-    // Tulis metadata file baru
     strcpy(node_fs_buf.nodes[empty_node].node_name, dst_fname);
     node_fs_buf.nodes[empty_node].parent_index = dst_idx;
     node_fs_buf.nodes[empty_node].data_index = (byte)empty_data;
 
-    // Salin isi data
     sectors = (src_md.filesize + SECTOR_SIZE - 1) / SECTOR_SIZE;
     written = 0;
     for (i = 16; i < SECTOR_SIZE && written < sectors; i++) {
@@ -403,7 +390,6 @@ void cp(byte cwd, char* src, char* dst) {
         }
     }
 
-    // Simpan hasil perubahan
     writeSector(&map_fs_buf,             FS_MAP_SECTOR_NUMBER);
     writeSector(node_fs_buf.nodes,       FS_NODE_SECTOR_NUMBER);
     writeSector(node_fs_buf.nodes + 32,  FS_NODE_SECTOR_NUMBER + 1);
@@ -464,11 +450,9 @@ void mkdir(byte cwd, char* dirname) {
   int i;
   int free_node_idx = -1;
 
-  // Baca sektor node
   readSector(&nodeT, FS_NODE_SECTOR_NUMBER);
   readSector(((byte*)&nodeT) + SECTOR_SIZE, FS_NODE_SECTOR_NUMBER + 1);
 
-  // Cek apakah nama sudah ada di cwd
   for (i = 0; i < FS_MAX_NODE; i++) {
       if (nodeT.nodes[i].parent_index == cwd &&
           strcmp(nodeT.nodes[i].node_name, dirname)) {
@@ -476,7 +460,6 @@ void mkdir(byte cwd, char* dirname) {
       }
   }
 
-  // Cari slot kosong
   for (i = 0; i < FS_MAX_NODE; i++) {
       if (nodeT.nodes[i].node_name[0] == '\0') {
           free_node_idx = i;
@@ -488,16 +471,13 @@ void mkdir(byte cwd, char* dirname) {
       return;
   }
 
-  // Siapkan node baru
   new_node.parent_index = cwd;
   new_node.data_index = FS_NODE_D_DIR;
   memset(new_node.node_name, 0, MAX_FILENAME);
   strncpy(new_node.node_name, dirname, MAX_FILENAME);
 
-  // Simpan node ke posisi kosong
   nodeT.nodes[free_node_idx] = new_node;
 
-  // Tulis kembali sektor node
   writeSector(&nodeT, FS_NODE_SECTOR_NUMBER);
   writeSector(((byte*)&nodeT) + SECTOR_SIZE, FS_NODE_SECTOR_NUMBER + 1);
 
