@@ -41,7 +41,7 @@ Each module focuses on different core concepts of operating systems and includes
 
 Our final project is creating simple operating system that brings together all of the knowledge and skills we developed during the lab modules. The project was developed from scratch in C and simulates OS-like behavior through modular, testable components. It showcases how fundamental OS concepts can be integrated into a cohesive, functioning system.
 
-### 📁 Project Structure
+### 📁 Final Project Structure
 
 Final-Project/
 ├── assets/ # Boot sector images, filesystem illustration, structure of the components, etc.
